@@ -1,0 +1,30 @@
+Installation Procedure:
+
+- Create the Datasource HappensNowDS as the following :
+
+                <datasource jta="false" jndi-name="java:/HappensNowDS" pool-name="HappensNowDS" enabled="true" use-java-context="true" use-ccm="false">
+                    <connection-url>jdbc:postgresql://172.16.201.188:5432/HappensNowDS</connection-url>
+                    <driver-class>org.postgresql.Driver</driver-class>
+                    <driver>postgresql</driver>
+                    <pool>
+                        <min-pool-size>1</min-pool-size>
+                        <max-pool-size>10</max-pool-size>
+                    </pool>
+                    <security>
+                        <user-name>postgres</user-name>
+                        <password>postgres</password>
+                    </security>
+                    <validation>
+                        <validate-on-match>false</validate-on-match>
+                        <background-validation>false</background-validation>
+                        <background-validation-millis>1</background-validation-millis>
+                    </validation>
+                    <statement>
+                        <prepared-statement-cache-size>0</prepared-statement-cache-size>
+                        <share-prepared-statements>false</share-prepared-statements>
+                    </statement>
+                </datasource>
+
+2- Adjust the target logging folder in the file: happens-now/happens-now-backend/src/main/resources/log4j2.xml
+
+3- Review the configuration in the file happens-now/happens-now-backend/src/main/resources/configuration.properties               
