@@ -1,15 +1,19 @@
 package org.xonyne.events.model;
 
-import java.lang.Long;
-import java.lang.String;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+
 
 /**
  * @author ridwann
@@ -30,8 +34,31 @@ public class Event {
 	private Date endDateTime;
 	private int url;
 	public Tag tags;
+    
+	@ManyToMany(
+            targetEntity=User.class,
+            cascade={CascadeType.PERSIST, CascadeType.MERGE}
+        )
+        @JoinTable(
+            name="interested",
+            joinColumns=@JoinColumn(name="eventId"),
+            inverseJoinColumns=@JoinColumn(name="userId")
+        )
 	public List<User> interestedUsers;
+
+	@ManyToMany(
+            targetEntity=User.class,
+            cascade={CascadeType.PERSIST, CascadeType.MERGE}
+        )
+        @JoinTable(
+            name="attending",
+            joinColumns=@JoinColumn(name="eventId"),
+            inverseJoinColumns=@JoinColumn(name="userId")
+        )
 	public List<User> attendingUsers;
+	
+	@OneToOne()
+	@JoinColumn(name="placeId")
 	public Place place;
 
 	public Event(Long eventId, String title, String description,

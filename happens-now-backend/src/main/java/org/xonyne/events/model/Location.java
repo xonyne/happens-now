@@ -4,13 +4,24 @@ import java.lang.Long;
 import java.lang.String;
 import java.lang.Double;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+
 /**
  * @author ridwann
  * @version 1.0
  * @created 13-Nov-2017 10:10:15 PM
  */
+@Entity
+@Table(name="location")
+@SequenceGenerator(name="location_locationId_seq", sequenceName="location_locationId_seq", initialValue = 1, allocationSize = 1)
 public class Location {
 
+	@GeneratedValue(generator="location_locationId_seq")
+	@Id
 	private Long id;
 	private String city;
 	private String country;
