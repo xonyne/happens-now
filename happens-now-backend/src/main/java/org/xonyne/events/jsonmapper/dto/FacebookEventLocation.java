@@ -6,8 +6,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class FacebookEventLocation {
     public String city;
     public String country;
-    public String latitude;
-    public String longitude;
+    public Double latitude;
+    public Double longitude;
     public String street;
     public String zip;
 }

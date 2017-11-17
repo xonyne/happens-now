@@ -6,7 +6,7 @@ import java.util.Date;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FacebookEvent {
-    public String id;
+    public Long id;
     public String name;
     public String type;
     public String coverPicture;

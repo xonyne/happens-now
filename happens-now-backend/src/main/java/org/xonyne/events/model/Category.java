@@ -3,6 +3,7 @@ package org.xonyne.events.model;
 import java.lang.Long;
 import java.lang.String;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -21,6 +22,7 @@ public class Category {
 
 	@GeneratedValue(generator="category_categoryId_seq")
 	@Id
+	@Column(name="category_id")
 	private Long id;
 	private String labelKey;
 

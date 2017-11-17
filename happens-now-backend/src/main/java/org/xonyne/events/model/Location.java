@@ -4,6 +4,7 @@ import java.lang.Long;
 import java.lang.String;
 import java.lang.Double;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -17,12 +18,25 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name="location")
-@SequenceGenerator(name="location_locationId_seq", sequenceName="location_locationId_seq", initialValue = 1, allocationSize = 1)
+@SequenceGenerator(name="location_id_seq", sequenceName="location_id_seq", initialValue = 1, allocationSize = 1)
 public class Location {
 
-	@GeneratedValue(generator="location_locationId_seq")
+	@GeneratedValue(generator="location_id_seq")
 	@Id
+	@Column(name="location_id")
 	private Long id;
+	public Location(Long id, String city, String country, String street,
+			String zip, Double latitude, Double longitude) {
+		super();
+		this.id = id;
+		this.city = city;
+		this.country = country;
+		this.street = street;
+		this.zip = zip;
+		this.latitude = latitude;
+		this.longitude = longitude;
+	}
+
 	private String city;
 	private String country;
 	private String street;

@@ -3,6 +3,8 @@ package org.xonyne.events.model;
 import java.lang.Long;
 import java.lang.String;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -18,20 +20,28 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name="place")
-@SequenceGenerator(name="place_placeId_seq", sequenceName="place_placeId_seq", initialValue = 1, allocationSize = 1)
+//@SequenceGenerator(name="place_placeId_seq", sequenceName="place_placeId_seq", initialValue = 1, allocationSize = 1)
 public class Place {
 
-	@GeneratedValue(generator="place_placeId_seq")
+//	@GeneratedValue(generator="place_placeId_seq")
 	@Id
+	@Column(name="place_id")
 	private Long id;
 	private String name;
 	
-	@OneToOne()
-	@JoinColumn(name="locationId")
+	@OneToOne(targetEntity=Location.class, cascade={CascadeType.ALL})
+	@JoinColumn(name="location_Id")
 	public Location location;
 
 	public Place(){
 
+	}
+
+	public Place(Long id, String name, Location location) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.location = location;
 	}
 
 	public Long getId() {

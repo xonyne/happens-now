@@ -3,6 +3,7 @@ package org.xonyne.events.model;
 import java.lang.Long;
 import java.lang.String;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -15,12 +16,13 @@ import javax.persistence.Table;
  * @created 13-Nov-2017 10:10:16 PM
  */
 @Entity
-@Table(name="user")
-@SequenceGenerator(name="user_userId_seq", sequenceName="user_userId_seq", initialValue = 1, allocationSize = 1)
+@Table(name="users")
+//@SequenceGenerator(name="user_userId_seq", sequenceName="user_userId_seq", initialValue = 1, allocationSize = 1)
 public class User {
 
-	@GeneratedValue(generator="user_userId_seq")
+//	@GeneratedValue(generator="user_userId_seq")
 	@Id
+	@Column(name="user_id")
 	private Long id;
 	private String name;
 	private String userName;
@@ -28,6 +30,15 @@ public class User {
 
 	public User(){
 
+	}
+
+	public User(Long id, String name, String userName,
+			String password) {
+		super();
+		this.id = id;
+		this.name = name;
+		this.userName = userName;
+		this.password = password;
 	}
 
 	public Long getId() {
@@ -62,5 +73,4 @@ public class User {
 		this.password = password;
 	}
 
-	
 }

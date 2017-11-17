@@ -19,7 +19,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
 @Configuration
-@EnableTransactionManagement(proxyTargetClass = true)
+@EnableTransactionManagement
+//(proxyTargetClass = true)
 public class PersistenceContext {
 
 	private static final String HAPPENS_NOW_DATA_SOURCE = "java:/HappensNowDS";
@@ -30,7 +31,7 @@ public class PersistenceContext {
 	public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
 		LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
 		em.setDataSource(dataSource());
-		em.setPackagesToScan(new String[] { "org.xonyne.config" });
+		em.setPackagesToScan(new String[] { "org.xonyne.events.model" });
 
 		JpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
 		em.setJpaVendorAdapter(vendorAdapter);

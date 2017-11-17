@@ -2,8 +2,10 @@ package org.xonyne.events.model;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -22,29 +24,39 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name="event")
-@SequenceGenerator(name="event_eventId_seq", sequenceName="event_eventId_seq", initialValue = 1, allocationSize = 1)
+//@SequenceGenerator(name="event_eventId_seq", sequenceName="event_eventId_seq", initialValue = 1, allocationSize = 1)
 public class Event {
 
-	@GeneratedValue(generator="event_eventId_seq")
+//	@GeneratedValue(generator="event_eventId_seq")
 	@Id
+	@Column(name="event_id")
 	private Long eventId;
 	private String title;
 	private String description;
 	private Date startDateTime;
 	private Date endDateTime;
-	private int url;
-	public Tag tags;
+	private String url;
+	@ManyToMany(
+            targetEntity=Tag.class
+          //  cascade={CascadeType.PERSIST, CascadeType.MERGE}
+        )
+        @JoinTable(
+            name="EventTag",
+            joinColumns=@JoinColumn(name="event_id"),
+            inverseJoinColumns=@JoinColumn(name="tag_id")
+        )
+	public Set<Tag> tags;
     
 	@ManyToMany(
-            targetEntity=User.class,
-            cascade={CascadeType.PERSIST, CascadeType.MERGE}
+            targetEntity=User.class
+            //cascade={CascadeType.PERSIST, CascadeType.MERGE}
         )
         @JoinTable(
             name="interested",
-            joinColumns=@JoinColumn(name="eventId"),
-            inverseJoinColumns=@JoinColumn(name="userId")
+            joinColumns=@JoinColumn(name="event_id"),
+            inverseJoinColumns=@JoinColumn(name="user_id")
         )
-	public List<User> interestedUsers;
+	public Set<User> interestedUsers;
 
 	@ManyToMany(
             targetEntity=User.class,
@@ -52,18 +64,18 @@ public class Event {
         )
         @JoinTable(
             name="attending",
-            joinColumns=@JoinColumn(name="eventId"),
-            inverseJoinColumns=@JoinColumn(name="userId")
+            joinColumns=@JoinColumn(name="event_id"),
+            inverseJoinColumns=@JoinColumn(name="user_id")
         )
-	public List<User> attendingUsers;
+	public Set<User> attendingUsers;
 	
 	@OneToOne()
-	@JoinColumn(name="placeId")
+	@JoinColumn(name="place_id")
 	public Place place;
 
 	public Event(Long eventId, String title, String description,
-			Date startDateTime, Date endDateTime, int url, Tag tags,
-			List<User> interestedUsers, List<User> attendingUsers, Place place) {
+			Date startDateTime, Date endDateTime, String url, Set<Tag> tags,
+			Set<User> interestedUsers, Set<User> attendingUsers, Place place) {
 		super();
 		this.eventId = eventId;
 		this.title = title;
@@ -121,35 +133,35 @@ public class Event {
 		this.endDateTime = endDateTime;
 	}
 
-	public int getUrl() {
+	public String getUrl() {
 		return url;
 	}
 
-	public void setUrl(int url) {
+	public void setUrl(String url) {
 		this.url = url;
 	}
 
-	public Tag getTags() {
+	public Set<Tag> getTags() {
 		return tags;
 	}
 
-	public void setTags(Tag tags) {
+	public void setTags(Set<Tag> tags) {
 		this.tags = tags;
 	}
 
-	public List<User> getInterestedUsers() {
+	public Set<User> getInterestedUsers() {
 		return interestedUsers;
 	}
 
-	public void setInterestedUsers(List<User> interestedUsers) {
+	public void setInterestedUsers(Set<User> interestedUsers) {
 		this.interestedUsers = interestedUsers;
 	}
 
-	public List<User> getAttendingUsers() {
+	public Set<User> getAttendingUsers() {
 		return attendingUsers;
 	}
 
-	public void setAttendingUsers(List<User> attendingUsers) {
+	public void setAttendingUsers(Set<User> attendingUsers) {
 		this.attendingUsers = attendingUsers;
 	}
 

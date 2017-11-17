@@ -7,11 +7,13 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.xonyne.events.service.LoadEventsService;
 
 @Configuration
 @EnableScheduling
 @ComponentScan(basePackages={"org.xonyne"})
+@EnableTransactionManagement
 public class ConfigurationSource {
 
     @Bean

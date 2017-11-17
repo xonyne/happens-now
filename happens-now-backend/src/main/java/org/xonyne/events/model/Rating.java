@@ -2,6 +2,7 @@ package org.xonyne.events.model;
 
 import java.lang.Long;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -17,11 +18,12 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name="rating")
-@SequenceGenerator(name="tating_ratingId_seq", sequenceName="rating_ratingId_seq", initialValue = 1, allocationSize = 1)
+@SequenceGenerator(name="rating_ratingId_seq", sequenceName="rating_ratingId_seq", initialValue = 1, allocationSize = 1)
 public class Rating {
 
 	@GeneratedValue(generator="rating_ratingId_seq")
 	@Id
+	@Column(name="rating_id")
 	private Long id;
 	private Integer rating;
 	
