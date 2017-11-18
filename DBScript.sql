@@ -145,7 +145,7 @@ ALTER TABLE public.event
   OWNER TO postgres;
 
 
-CREATE TABLE public.users
+CREATE TABLE public.user
 (
   user_id bigint NOT NULL ,
   name character varying(255) NOT NULL,
@@ -156,7 +156,7 @@ CREATE TABLE public.users
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE public.users
+ALTER TABLE public.user
   OWNER TO postgres;
 
 CREATE TABLE public.attending
@@ -246,7 +246,11 @@ ALTER TABLE public.Interested
 CREATE TABLE public.rating
 (
   rating_id bigint NOT NULL DEFAULT nextval('rating_rating_id_seq'::regclass),
-  user_id bigint NOT NULL,
+  
+  
+  
+  
+  _id bigint NOT NULL,
   event_id bigint NOT NULL,
   rating integer,
   CONSTRAINT rating_pk PRIMARY KEY (rating_id ),
