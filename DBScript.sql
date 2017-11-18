@@ -169,7 +169,7 @@ CREATE TABLE public.attending
       REFERENCES public.event (event_id) 
       ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT user_id FOREIGN KEY (user_id)
-      REFERENCES public.userS (user_id) 
+      REFERENCES public.user (user_id) 
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
 WITH (
@@ -246,11 +246,7 @@ ALTER TABLE public.Interested
 CREATE TABLE public.rating
 (
   rating_id bigint NOT NULL DEFAULT nextval('rating_rating_id_seq'::regclass),
-  
-  
-  
-  
-  _id bigint NOT NULL,
+  user_id bigint NOT NULL,
   event_id bigint NOT NULL,
   rating integer,
   CONSTRAINT rating_pk PRIMARY KEY (rating_id ),
@@ -266,7 +262,3 @@ WITH (
 );
 ALTER TABLE public.rating
   OWNER TO postgres;
-
-
-
-
