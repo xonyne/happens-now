@@ -2,6 +2,8 @@ package org.xonyne.events.service;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -18,6 +20,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.xonyne.events.dao.EventsDao;
+import org.xonyne.events.dto.EventDto;
 import org.xonyne.events.jsonmapper.JsonReader;
 import org.xonyne.events.jsonmapper.dto.EventUsersResult;
 import org.xonyne.events.jsonmapper.dto.FacebookEvent;
@@ -38,7 +41,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class LoadEventsService {
 
-	private Logger logger = org.slf4j.LoggerFactory.getLogger("LoadEventService");
+	private Logger loadEventsLogger = org.slf4j.LoggerFactory.getLogger("LoadEventService");
+	private Logger logger = org.slf4j.LoggerFactory.getLogger(LoadEventsService.class);
 
 	@Value("${loadEventsService.facebookEventsByLocationUrl}")
 	private String facebookEventsByLocationUrl;
@@ -68,7 +72,7 @@ public class LoadEventsService {
 	@Scheduled(fixedDelayString = "${loadEventsService.delayInMilliseconds}")
 	public void loadEvents(){
 		try{
-			logger.debug("start load events");
+			loadEventsLogger.debug("start load events");
 
 			Set<FacebookEvent> allEvents = new HashSet<FacebookEvent>();
 			FacebookEventResults facebookEvents;
@@ -79,73 +83,83 @@ public class LoadEventsService {
 			for (int i = 1; i <= 10; i++) {
 				String url = getEventsUrl();
 				
-				if (logger.isDebugEnabled()){
-					logger.debug("url:" + url.toString());
+				if (loadEventsLogger.isDebugEnabled()){
+					loadEventsLogger.debug("url:" + url.toString());
 				}
 
 				objectMapper = new ObjectMapper();
-				events = JsonReader.readJsonFromUrl(url.toString());
+				events = JsonReader.readJsonFromUrl(url);
 				
-				if (logger.isDebugEnabled()){
-					logger.debug("events retreived");
+				if (loadEventsLogger.isDebugEnabled()){
+					loadEventsLogger.debug("events retreived");
 				}
 
 				facebookEvents = objectMapper.readValue(events.toString(),FacebookEventResults.class);
 
-				if (logger.isDebugEnabled()){
-					logger.debug("events parsed");
+				if (loadEventsLogger.isDebugEnabled()){
+					loadEventsLogger.debug("events parsed");
 				}
 
 				for (FacebookEvent facebookEvent: facebookEvents.events) {
-					if (allEvents.contains(facebookEvent)) {
-						duplicates++;
-					}else {
+					try{
+						loadEventsLogger.debug("storing information of event id:" + facebookEvent.id);
 						
-						FacebookEventPlace facebookPlace = facebookEvent.place;
-						FacebookEventLocation facebookLocation = facebookPlace.location;
-						Place place = new Place(facebookPlace.id, facebookPlace.name, 
-								new Location(null, facebookLocation.city, facebookLocation.country,
-								facebookLocation.street, facebookLocation.zip, facebookLocation.latitude, 
-								facebookLocation.longitude));
-						place = eventsDao.findOrPersist(place);
+						if (allEvents.contains(facebookEvent)) {
+							duplicates++;
+							loadEventsLogger.debug(" duplicated event, id:" + facebookEvent.id);
+						}else {
+							FacebookEventPlace facebookPlace = facebookEvent.place;
+							FacebookEventLocation facebookLocation = facebookPlace.location;
+							Place place = new Place(facebookPlace.id, facebookPlace.name, 
+									new Location(null, facebookLocation.city, facebookLocation.country,
+									facebookLocation.street, facebookLocation.zip, facebookLocation.latitude, 
+									facebookLocation.longitude));
+							place = eventsDao.findOrPersist(place);
+							
+							// load interested users
+							loadEventsLogger.debug(" retreiving interested users for event:"+facebookEvent.id);
+							url = getInterestedUsersUrl(facebookEvent.id);
+							Set<User> interestedUsers = getUsers(objectMapper, url);
+							Set<User> storedInterestedUsers = new HashSet<User>();
+							
+							for(User user:interestedUsers){
+								User storedUser = eventsDao.findOrPersist(user);
+								storedInterestedUsers.add(storedUser);
+							}
 						
-						// load interested users
-						logger.debug(" retreiving interested users for event:"+facebookEvent.id);
-						url = getInterestedUsersUrl(facebookEvent.id);
-						Set<User> interestedUsers = getUsers(objectMapper, url);
-						Set<User> storedInterestedUsers = new HashSet<User>();
-						
-						for(User user:interestedUsers){
-							User storedUser = eventsDao.findOrPersist(user);
-							storedInterestedUsers.add(storedUser);
+							loadEventsLogger.debug(" retreiving attending users for event:"+facebookEvent.id);
+							url = getAttendingUsersUrl(facebookEvent.id);
+							Set<User> attendingUsers = getUsers(objectMapper, url);
+							Set<User> storedAttendedUsers = new HashSet<User>();
+							
+							for(User user:attendingUsers){
+								User storedUser = eventsDao.findOrPersist(user);
+								storedAttendedUsers.add(storedUser);
+							}
+							
+							Event event = new Event(facebookEvent.id, facebookEvent.name, facebookEvent.description, 
+									facebookEvent.startTime, facebookEvent.endTime,null, null, null, null, place);
+							
+							loadEventsLogger.debug(" persist event");
+							event = eventsDao.findOrPersist(event);
+							event.setAttendingUsers(storedAttendedUsers);
+							event.setInterestedUsers(storedInterestedUsers);
+							loadEventsLogger.debug(" add attended and interested users");
+							eventsDao.merge(event);
+							loadEventsLogger.debug(" event stored successfully");
+						}
+						}catch (Exception e) {
+							logger.error("error in storing information of event id:" + facebookEvent.id + "," + e.getMessage(), e);
 						}
 					
-						logger.debug(" retreiving attending users for event:"+facebookEvent.id);
-						url = getAttendingUsersUrl(facebookEvent.id);
-						Set<User> attendingUsers = getUsers(objectMapper, url);
-						Set<User> storedAttendedUsers = new HashSet<User>();
-						
-						for(User user:attendingUsers){
-							User storedUser = eventsDao.findOrPersist(user);
-							storedAttendedUsers.add(storedUser);
-						}
-						
-						Event event = new Event(facebookEvent.id, facebookEvent.name, facebookEvent.description, 
-								facebookEvent.start_time, facebookEvent.end_time,null, null, interestedUsers, attendingUsers, place);
-						eventsDao.persist(event);
+					loadEventsLogger.debug("-----------");
+					loadEventsLogger.debug("Coordinates: https://www.google.ch/maps/@" + String.valueOf(latitude+ "," + String.valueOf(longitude)));
+					loadEventsLogger.debug("Events in this run: " + facebookEvents.events.length);
+					loadEventsLogger.debug("Duplicates in this run: " + duplicates);
+					loadEventsLogger.debug("Events in total: " + allEvents.size());
 					}
 				}
 
-				if (logger.isDebugEnabled()){
-					logger.debug("events added to set");
-				}
-
-				logger.debug("-----------");
-				logger.debug("Coordinates: https://www.google.ch/maps/@" + String.valueOf(latitude+ "," + String.valueOf(longitude)));
-				logger.debug("Events in this run: " + facebookEvents.events.length);
-				logger.debug("Duplicates in this run: " + duplicates);
-				logger.debug("Events in total: " + allEvents.size());
-			}
 		}catch(Exception ex){
 			logger.error("error in load events,"+ex.getMessage(), ex);
 		}
@@ -188,5 +202,86 @@ public class LoadEventsService {
 		url.append(eventId).append("/attending?").append("&access_token=").append(facebookApiAccessToken);
 		return url.toString();
 	}
+	
+	public List<EventDto> getTodayEvents(){
+		Calendar start = Calendar.getInstance();
+		start.set(Calendar.HOUR_OF_DAY, 0);
+		start.set(Calendar.MINUTE, 0);
+		start.set(Calendar.SECOND, 0);
+		
+		Calendar end = Calendar.getInstance();
+		end.set(Calendar.HOUR_OF_DAY, 23);
+		end.set(Calendar.MINUTE, 59);
+		end.set(Calendar.SECOND, 59);
+		
+		List<EventDto> result = findEvents(start.getTime(), end.getTime());
+		
+		return result;
+	}
+
+	public List<EventDto> getWeekendEvents() {
+		Calendar start = Calendar.getInstance();
+		start.set(Calendar.HOUR_OF_DAY, 0);
+		start.set(Calendar.MINUTE, 0);
+		start.set(Calendar.SECOND, 0);
+		start.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
+		
+		Calendar end = Calendar.getInstance();
+		end.set(Calendar.HOUR_OF_DAY, 23);
+		end.set(Calendar.MINUTE, 59);
+		end.set(Calendar.SECOND, 59);
+		end.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+
+		List<EventDto> result = findEvents(start.getTime(), end.getTime());
+
+		return result;
+	}
+	
+	public List<EventDto> getNextWeekendEvents() {
+		Calendar start = Calendar.getInstance();
+		start.set(Calendar.HOUR_OF_DAY, 0);
+		start.set(Calendar.MINUTE, 0);
+		start.set(Calendar.SECOND, 0);
+		int daysToStartNextWeekend = Calendar.SUNDAY - start.get(Calendar.DAY_OF_WEEK) + Calendar.SATURDAY;
+		start.add(Calendar.DAY_OF_MONTH, daysToStartNextWeekend);
+		
+		Calendar end = Calendar.getInstance();
+		end.set(Calendar.HOUR_OF_DAY, 23);
+		end.set(Calendar.MINUTE, 59);
+		end.set(Calendar.SECOND, 59);
+		end.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+		int daysToEndNextWeekend = Calendar.SUNDAY - start.get(Calendar.DAY_OF_WEEK) + Calendar.SUNDAY;
+		start.add(Calendar.DAY_OF_MONTH, daysToEndNextWeekend);
+
+		if (logger.isDebugEnabled()){
+			logger.debug(" start/end dates of next weekend:" + start.getTime() +","+ end.getTime());
+		}
+		
+		List<EventDto> result = findEvents(start.getTime(), end.getTime());
+
+		return result;
+	}
+
+	public List<EventDto> getEvents(Date start, Date end) {
+		if (logger.isDebugEnabled()){
+			logger.debug(" get events between :" + start.getTime() +","+ end.getTime());
+		}
+		
+		List<EventDto> result = findEvents(start, end);
+
+		return result;
+	}
+	private List<EventDto> findEvents(Date start, Date end) {
+		List<Event> events = eventsDao.findEvents(start, end);
+		List<EventDto> result = new ArrayList<EventDto>(events.size());
+		
+		for(Event event:events){
+			result.add(new EventDto(event.getEventId(), event.getTitle(), event.getDescription()));
+		}
+		
+		logger.debug(" retreived result count:" + result.size());
+		
+		return result;
+	}	
 	
 }

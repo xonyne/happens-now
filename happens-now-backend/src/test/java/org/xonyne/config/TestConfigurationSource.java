@@ -1,4 +1,4 @@
-package org.xonyne.events.config;
+package org.xonyne.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -8,14 +8,13 @@ import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import org.xonyne.events.rest.EventsEndPoint;
 import org.xonyne.events.service.LoadEventsService;
 
 @Configuration
-@EnableScheduling
+//@EnableScheduling
 @ComponentScan(basePackages={"org.xonyne"})
 @EnableTransactionManagement
-public class ConfigurationSource {
+public class TestConfigurationSource {
 
     @Bean
     public static PropertySourcesPlaceholderConfigurer propertyConfigurer() {
@@ -28,18 +27,8 @@ public class ConfigurationSource {
         return propertySourcesPlaceholderConfigurer;
     }
     
-    @Bean
-    public AppContext applicationContext(){
-    	return new AppContext();
-    }
-    
     public LoadEventsService loadEventsService(){
     	return new LoadEventsService();
     }
-    
-    public EventsEndPoint loadEventsEndPoint(){
-    	return new EventsEndPoint();
-    }
-    
     
 }

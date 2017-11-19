@@ -1,0 +1,14 @@
+<jboss-deployment-structure>
+	<deployment>
+			<dependencies>
+			<module name="org.jboss.resteasy.resteasy-yaml-provider" services="import"/>
+			<module name="org.codehaus.jackson.jackson-core-asl" />
+      		<module name="org.codehaus.jackson.jackson-mapper-asl" />
+		</dependencies>
+	
+		<exclusions>
+			<module name="org.apache.log4j" />
+			<module name="org.slf4j" />
+		</exclusions>
+	</deployment>
+</jboss-deployment-structure>

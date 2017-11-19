@@ -27,7 +27,7 @@ import javax.persistence.Table;
 //@SequenceGenerator(name="event_eventId_seq", sequenceName="event_eventId_seq", initialValue = 1, allocationSize = 1)
 public class Event {
 
-//	@GeneratedValue(generator="event_eventId_seq")
+//	@GeneratedValue(strategy=)`																																																																																																																						
 	@Id
 	@Column(name="event_id")
 	private Long eventId;
@@ -37,19 +37,19 @@ public class Event {
 	private Date endDateTime;
 	private String url;
 	@ManyToMany(
-            targetEntity=Tag.class
-          //  cascade={CascadeType.PERSIST, CascadeType.MERGE}
+            targetEntity=Tag.class,
+            cascade={CascadeType.PERSIST, CascadeType.MERGE}
         )
         @JoinTable(
-            name="EventTag",
+            name="event_tag",
             joinColumns=@JoinColumn(name="event_id"),
             inverseJoinColumns=@JoinColumn(name="tag_id")
         )
 	public Set<Tag> tags;
     
 	@ManyToMany(
-            targetEntity=User.class
-            //cascade={CascadeType.PERSIST, CascadeType.MERGE}
+            targetEntity=User.class,
+            cascade={CascadeType.PERSIST, CascadeType.MERGE}
         )
         @JoinTable(
             name="interested",

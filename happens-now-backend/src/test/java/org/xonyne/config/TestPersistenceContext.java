@@ -1,4 +1,4 @@
-package org.xonyne.events.config;
+package org.xonyne.config;
 
 import java.util.Properties;
 
@@ -6,17 +6,15 @@ import javax.naming.NamingException;
 import javax.persistence.EntityManagerFactory;
 import javax.sql.DataSource;
 
-import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.dao.annotation.PersistenceExceptionTranslationPostProcessor;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jndi.JndiTemplate;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.JpaVendorAdapter;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
-import org.springframework.orm.jpa.vendor.HibernateJpaSessionFactoryBean;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
@@ -24,12 +22,11 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @EnableTransactionManagement
 //(proxyTargetClass = true)
-public class PersistenceContext {
+public class TestPersistenceContext {
 
 	private static final String HAPPENS_NOW_DATA_SOURCE = "java:/HappensNowDS";
 	
-	private Logger logger = org.slf4j.LoggerFactory.getLogger(PersistenceContext.class);
-	
+	private Logger logger = org.slf4j.LoggerFactory.getLogger(TestPersistenceContext.class);
 	
 	@Bean
 	public LocalContainerEntityManagerFactoryBean entityManagerFactory() {
@@ -42,7 +39,7 @@ public class PersistenceContext {
 		
 		Properties properties = new Properties();
 		properties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
-		properties.setProperty("hibernate.show_sql", "true");
+		properties.setProperty("hibernate.show_sql", "false");
 		properties.setProperty("hibernate.event.merge.entity_copy_observer", "allow");
         properties.setProperty("hibernate.temp.use_jdbc_metadata_defaults", "false");
 		em.setJpaProperties(properties);
@@ -50,19 +47,17 @@ public class PersistenceContext {
 		return em;
 	}
 
-	@Bean
-	public DataSource dataSource() {
-		DataSource dataSource = null;
-		JndiTemplate jndi = new JndiTemplate();
-		try {
-			dataSource = (DataSource) jndi.lookup(HAPPENS_NOW_DATA_SOURCE);
-		} catch (NamingException e) {
-			logger.error("NamingException for " + HAPPENS_NOW_DATA_SOURCE, e);
-		}
-		
-		return dataSource;
-	}
+    @Bean
+    public DataSource dataSource() {
+        DriverManagerDataSource dataSource = new DriverManagerDataSource();
 
+        dataSource.setDriverClassName("org.postgresql.Driver");
+        dataSource.setUrl("jdbc:postgresql://172.16.201.188:5432/happens_now");
+        dataSource.setUsername("postgres");
+        dataSource.setPassword("postgres");
+        return dataSource;
+    }
+    
 	@Bean
 	public PlatformTransactionManager transactionManager(EntityManagerFactory emf) {
 		JpaTransactionManager transactionManager = new JpaTransactionManager();

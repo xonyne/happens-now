@@ -12,8 +12,8 @@ public class FacebookEvent {
     public String coverPicture;
     public String profilePicture;
     public String description;
-    public Date start_time;
-    public Date end_time;
+    public Date startTime;
+    public Date endTime;
     public String timeFromNow;
     public boolean isCancelled;
     public boolean isDraft;
@@ -44,7 +44,7 @@ public class FacebookEvent {
 		return "FacebookEvent [id=" + id + ", name=" + name + ", type=" + type
 				+ ", coverPicture=" + coverPicture + ", profilePicture="
 				+ profilePicture + ", description=" + description
-				+ ", start_time=" + start_time + ", end_time=" + end_time
+				+ ", start_time=" + startTime + ", end_time=" + endTime
 				+ ", timeFromNow=" + timeFromNow + ", isCancelled="
 				+ isCancelled + ", isDraft=" + isDraft + ", category="
 				+ category + ", place=" + place + ", stats=" + stats
