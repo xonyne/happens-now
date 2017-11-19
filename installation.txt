@@ -1,9 +1,29 @@
 Installation Procedure:
 
-- Create the Datasource HappensNowDS as the following :
+- Install the library facebook-events-by-location in GIT mode 
+
+- Install Postgresql DB 9.5.4
+
+- Run the DB script DBScript.sql using the following command :
+  /opt/PostgresPlus/9.5AS/bin/psql -w -U postgres -f "/PATH/TO/DBScript.sql" -p 5432
+
+- Downlod WildFly 10.1.0.Final from http://wildfly.org/downloads/
+
+- in wildfly-11.0.0.Final/standalone/configuration/stanalone.xml define the following :
+ 
+ - Add these drivers:
+
+        <driver name="postgresql" module="org.postgresql">
+            <xa-datasource-class>org.postgresql.xa.PGXADataSource</xa-datasource-class>
+        </driver>
+        <driver name="postgresql-driver" module="org.postgresql">
+            <driver-class>org.postgresql.Driver</driver-class>
+        </driver>
+
+  - Create the Datasource HappensNowDS as the following :
 
                 <datasource jta="false" jndi-name="java:/HappensNowDS" pool-name="HappensNowDS" enabled="true" use-java-context="true" use-ccm="false">
-                    <connection-url>jdbc:postgresql://172.16.201.188:5432/HappensNowDS</connection-url>
+                    <connection-url>jdbc:postgresql://YOUR.IP.ADDRESS.HERE:5432/HappensNowDS</connection-url>
                     <driver-class>org.postgresql.Driver</driver-class>
                     <driver>postgresql</driver>
                     <pool>
@@ -25,6 +45,9 @@ Installation Procedure:
                     </statement>
                 </datasource>
 
-2- Adjust the target logging folder in the file: happens-now/happens-now-backend/src/main/resources/log4j2.xml
+- Extract the zip file postgresql.zip to the folder wildfly-11.0.0.Final/modules/system/layers/base/org
+  after extracting the zip file you should have this path wildfly-11.0.0.Final/modules/system/layers/base/org/postgresql/main
+  
+- Adjust the target logging folder in the file: happens-now/happens-now-backend/src/main/resources/log4j2.xml
 
-3- Review the configuration in the file happens-now/happens-now-backend/src/main/resources/configuration.properties               
+- Review the configuration in the file happens-now/happens-now-backend/src/main/resources/configuration.properties               
