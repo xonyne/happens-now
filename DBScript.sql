@@ -94,8 +94,8 @@ CREATE TABLE public.location
   location_id bigint NOT NULL DEFAULT nextval('location_id_seq'::regclass),
   city character varying(255) NOT NULL,
   country character varying(255) NOT NULL,
-  street character varying(255) NOT NULL,
-  zip character varying(255) NOT NULL,
+  street character varying(255) ,
+  zip character varying(255),
   latitude double precision NOT NULL,
   longitude double precision NOT NULL,
   CONSTRAINT location_pk PRIMARY KEY (location_id )
@@ -127,7 +127,7 @@ ALTER TABLE public.place
 CREATE TABLE public.event
 (
   event_id bigint NOT NULL ,
-  startDateTime timestamp without time zone NOT NULL,
+  startDateTime timestamp without time zone,
   title character varying(255) NOT NULL,
   description character varying,
   endDateTime timestamp without time zone,
@@ -169,7 +169,7 @@ CREATE TABLE public.attending
       REFERENCES public.event (event_id) 
       ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT user_id FOREIGN KEY (user_id)
-      REFERENCES public.userS (user_id) 
+      REFERENCES public.users (user_id) 
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
 WITH (
@@ -223,7 +223,7 @@ WITH (
 ALTER TABLE public.event_tag
   OWNER TO postgres;
 
-CREATE TABLE public.Interested
+CREATE TABLE public.interested
 (
   interested_id bigint NOT NULL DEFAULT nextval('interested_interested_id_seq'::regclass),
   user_id bigint NOT NULL,
@@ -233,13 +233,13 @@ CREATE TABLE public.Interested
       REFERENCES public.event (event_id)
       ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT user_fk FOREIGN KEY (user_id)
-      REFERENCES public.user (user_id) 
+      REFERENCES public.users (user_id) 
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
 WITH (
   OIDS=FALSE
 );
-ALTER TABLE public.Interested
+ALTER TABLE public.interested
   OWNER TO postgres;
 
 
@@ -254,7 +254,7 @@ CREATE TABLE public.rating
       REFERENCES public.event (event_id) 
       ON UPDATE NO ACTION ON DELETE NO ACTION,
   CONSTRAINT user_fk FOREIGN KEY (user_id)
-      REFERENCES public.user (user_id) 
+      REFERENCES public.users (user_id) 
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
 WITH (
@@ -262,7 +262,3 @@ WITH (
 );
 ALTER TABLE public.rating
   OWNER TO postgres;
-
-
-
-
