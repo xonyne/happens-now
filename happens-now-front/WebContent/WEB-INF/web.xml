@@ -4,6 +4,19 @@
 	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
 	id="happens-now-front" version="3.0">
 	
+	<filter> 
+	 	<filter-name>SessionFilter</filter-name> 
+	 	<filter-class>org.xonyne.events.util.PermissionFilter</filter-class> 
+	</filter> 
+	<filter-mapping> 
+		<filter-name>SessionFilter</filter-name>
+		<url-pattern>/*</url-pattern> 
+	</filter-mapping>
+	
+	<listener>
+	   <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	
 	<display-name>HappensNow</display-name>
 	<servlet>
 		<servlet-name>Faces Servlet</servlet-name>
@@ -12,7 +25,7 @@
 	</servlet>
 	<servlet-mapping>
 		<servlet-name>Faces Servlet</servlet-name>
-		<url-pattern>/faces/*</url-pattern>
+		<url-pattern>*.xhtml</url-pattern>
 	</servlet-mapping>
 	<context-param>
 		<description>State saving method: 'client' or 'server' (=default). See JSF Specification 2.5.2</description>
@@ -23,6 +36,10 @@
 		<param-name>javax.servlet.jsp.jstl.fmt.localizationContext</param-name>
 		<param-value>resources.application</param-value>
 	</context-param>
+	<context-param>
+	    <param-name>javax.faces.DATETIMECONVERTER_DEFAULT_TIMEZONE_IS_SYSTEM_TIMEZONE</param-name>
+	    <param-value>true</param-value>
+	</context-param>	
 	<listener>
 		<listener-class>com.sun.faces.config.ConfigureListener</listener-class>
 	</listener>

@@ -10,8 +10,6 @@ import org.xonyne.events.model.User;
 
 public interface EventsDao {
 
-	User findOrPersist(User user);
-
 	Place findOrPersist(Place place);
 
 	Event findEvent(Event event);

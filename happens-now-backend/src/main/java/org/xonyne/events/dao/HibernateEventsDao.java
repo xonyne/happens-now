@@ -22,7 +22,7 @@ import org.xonyne.events.model.Place;
 import org.xonyne.events.model.User;
 
 @Repository
-public class HibernateEventsDao implements EventsDao {
+public class HibernateEventsDao extends AbstractDao implements EventsDao {
 
 	private Logger logger = org.slf4j.LoggerFactory.getLogger(HibernateEventsDao.class);
 	
@@ -40,19 +40,6 @@ public class HibernateEventsDao implements EventsDao {
 			return entityManager.find(Event.class, event.getEventId());
 		} catch (RuntimeException re) {
 			logger.error("error in find Event, "+re.getMessage(), re);
-			throw re;
-		}
-	}
-	
-	@Transactional(propagation = Propagation.REQUIRED)
-	public void persistObject(Object object) {
-		logger.debug("create " + object.getClass().getName() + " instance");
-		try {
-			entityManager.merge(object);
-			entityManager.flush();
-			logger.debug("persisted successful");
-		} catch (RuntimeException re) {
-			logger.error("persist " + object.getClass().getName() + " failed", re);
 			throw re;
 		}
 	}
@@ -77,18 +64,6 @@ public class HibernateEventsDao implements EventsDao {
 
 	@Override
 	@Transactional
-	public User findOrPersist(User user) {
-		User storedUser = entityManager.find(User.class, user.getId());
-		if (storedUser == null){
-			persistObject(user);
-			storedUser = entityManager.find(User.class, user.getId());
-		}
-		
-		return storedUser;
-	}
-	
-	@Override
-	@Transactional
 	public Place findOrPersist(Place place){
 		Place storedPlace = entityManager.find(Place.class, place.getId());
 		if (storedPlace == null){
@@ -103,13 +78,21 @@ public class HibernateEventsDao implements EventsDao {
 	@Override
 	@Transactional
 	public List<Event> findEvents(Date from, Date to) {
-		Session session = entityManager.unwrap(Session.class);
-		SessionFactory sessionFactory = session.getSessionFactory();		
+		SessionFactory sessionFactory = getSession();
+		Session session = null;
+		List<Event> result = null;
 		
-		Query query = sessionFactory.openSession().createQuery("from Event e where e.startDateTime BETWEEN :start AND :end ");
-		query.setParameter("start", from).setParameter("end", to);
-		List<Event> list = query.list();
+		try{
+			session = sessionFactory.openSession();
+			Query query = session.createQuery("from Event e where e.startDateTime BETWEEN :start AND :end ");
+			query.setParameter("start", from).setParameter("end", to);
+			result = query.list();
+		}finally{
+			if (session != null){
+				session.close();
+			}
+		}
 		
-		return list;
+		return result;
 	}
 }

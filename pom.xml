@@ -6,6 +6,7 @@
   <packaging>pom</packaging>
   
   <modules>
+    <module>happens-now-commons</module>
   	<module>happens-now-service</module>
   	<module>happens-now-front</module>
   </modules>

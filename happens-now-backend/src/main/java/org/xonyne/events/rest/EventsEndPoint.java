@@ -5,10 +5,13 @@ import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
@@ -17,14 +20,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.xonyne.events.config.AppContext;
 import org.xonyne.events.dto.EventDto;
+import org.xonyne.events.dto.UserDto;
 import org.xonyne.events.service.LoadEventsService;
 
-@Path("/account")
+@Path("/events")
 @Controller
 public class EventsEndPoint {
 	
 	private static final Logger logger = LoggerFactory.getLogger(EventsEndPoint.class);
-	private SimpleDateFormat dateFormate = new SimpleDateFormat("yyyy-MM-dd");
 	
 	@Autowired
 	private HttpServletRequest request;
@@ -42,8 +45,18 @@ public class EventsEndPoint {
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
+	@Path("/tonight")
+	public List<EventDto> getTonightEvents() {
+		logger.debug("start getTonightEvents");
+		return AppContext.ctx.getBean(LoadEventsService.class).getTonightEvents();
+	}
+
+	
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/weekend")
 	public List<EventDto> getWeekendEvents() {
+		logger.debug("start getWeekendEvents");
 		return AppContext.ctx.getBean(LoadEventsService.class).getWeekendEvents();
 	}
 
@@ -51,6 +64,7 @@ public class EventsEndPoint {
 	@Produces(MediaType.APPLICATION_JSON)
 	@Path("/nextWeekend")
 	public List<EventDto> getNextWeekendEvents() {
+		logger.debug("start getNextWeekendEvents");
 		return AppContext.ctx.getBean(LoadEventsService.class).getNextWeekendEvents();
 	}
 	
@@ -59,6 +73,8 @@ public class EventsEndPoint {
 	@Path("/find")
 	public List<EventDto> findEvents(@QueryParam("from") String from, @QueryParam("to") String to) {
 		try{
+			logger.debug("find events [from-to]:"+from + ", " + to);
+			SimpleDateFormat dateFormate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 			Date fromDate = dateFormate.parse(from);
 			Date toDate = dateFormate.parse(to);
 			return AppContext.ctx.getBean(LoadEventsService.class).getEvents(fromDate, toDate);
@@ -66,9 +82,14 @@ public class EventsEndPoint {
 			logger.error("error in findEvents,"+ex.getMessage(), ex);
 			throw new RuntimeException(ex);
 		}
-		
-		
 	}
 	
-
+	@GET
+	@Path("/authenticate")
+	@Produces(MediaType.APPLICATION_JSON)
+	public UserDto authenticate(@QueryParam("username") String userName, @QueryParam("password") String password) {
+		logger.debug("authenticate for user :" + userName);
+		return AppContext.ctx.getBean(LoadEventsService.class).findUser(userName, password);
+	}
+	
 }
