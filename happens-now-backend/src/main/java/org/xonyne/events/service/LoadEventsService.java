@@ -1,6 +1,7 @@
 package org.xonyne.events.service;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -19,6 +20,7 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.xonyne.commons.Utils;
 import org.xonyne.events.dao.EventsDao;
 import org.xonyne.events.dao.UsersDao;
 import org.xonyne.events.dto.EventDto;
@@ -171,20 +173,30 @@ public class LoadEventsService {
 		}
 	}
 
+	/**
+	 * Reads the list of users using the provided URL. 
+	 */
 	private Set<User> getUsers(ObjectMapper objectMapper, String url)
 			throws IOException, JsonParseException, JsonMappingException {
 
 		Set<User> result = new HashSet<User>();
-		JSONObject object = JsonReader.readJsonFromUrl(url.toString());
-		EventUsersResult facbookUsers = objectMapper.readValue(object.toString(),EventUsersResult.class);
+		while(url != null && !url.isEmpty()){
+			logger.debug("load users from url :" + url);
+			
+			JSONObject object = JsonReader.readJsonFromUrl(url);
+			EventUsersResult facbookUsers = objectMapper.readValue(object.toString(),EventUsersResult.class);
 
-		for(FacebookUser facebookUser:facbookUsers.data){
-			if (logger.isDebugEnabled()){
-				logger.debug("  user:"+facebookUser.name);
+			for(FacebookUser facebookUser:facbookUsers.data){
+				if (logger.isDebugEnabled()){
+					logger.debug("  user:"+facebookUser.name);
+				}
+
+				User user = new User(facebookUser.id, facebookUser.name, null, null);
+				result.add(user);
 			}
 
-			User user = new User(facebookUser.id, facebookUser.name, null, null);
-			result.add(user);
+			// Supports Facebook cursor pagination
+			url = facbookUsers.paging != null? facbookUsers.paging.next : null;
 		}
 
 		return result;
@@ -308,6 +320,12 @@ public class LoadEventsService {
 	}	
 
 	public UserDto findUser(String userName, String password){
+		try {
+			password = Utils.encodeAsMD5(password);
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException("error in find user");
+		}
+		
 		User user = usersDao.find(userName, password);
 		UserDto userDto =  null;
 		
