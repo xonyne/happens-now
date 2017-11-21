@@ -1,0 +1,95 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+<h:head></h:head>
+<h:body>	
+<p:panel style="width:80%">
+<p:panelGrid style="width:100%">
+<p:row>
+        <p:column style="font-weight: bold;">Home</p:column>
+        <p:column rowspan="2" style="font-weight: bold;text-align:center"><h3>Happens Now!</h3></p:column>
+        <p:column style="font-weight: bold;">${user.name}</p:column>
+</p:row>
+<p:row>
+        <p:column style="font-weight: bold;">Admin</p:column>
+        <p:column style="font-weight: bold;">Logout</p:column>
+</p:row>
+
+<p:row>
+        <p:column style="font-weight: bold;text-align:center;" colspan="3"><h4>What is your plan?</h4>
+        <h4>I know</h4></p:column>
+</p:row>
+</p:panelGrid>
+
+<p:panelGrid style="width:100%">
+<p:row valign="top">
+        <p:column style="font-weight: bold;text-align:center">
+        <p:panel id="what" header="What" style="margin-bottom:20px">
+        <p:selectOneMenu id="category" value="#{findEventsView.selectedCategory}" style="width:150px">
+                <f:selectItem itemLabel="Select Category" itemValue="" noSelectionOption="true" />
+                <f:selectItems value="#{findEventsView.categories}" />
+            </p:selectOneMenu>        
+        
+        </p:panel>
+        </p:column>
+        
+        <p:column style="font-weight: bold;text-align:right">
+          <p:panel id="when" header="When" style="margin-bottom:20px;width:350px">
+				<h:form>
+					<br><p:commandButton value="today" style="width:200px;"
+							actionListener="#{findEventsView.todayEvents()}"
+							update="eventsTable" ajax="true" /></br>
+
+					<br><p:commandButton value="tonight" style="width:200px;"
+							actionListener="#{findEventsView.tonightEvents()}"
+							update="eventsTable" ajax="true" /></br>
+
+					<br><p:commandButton value="this-weekend" style="width:200px;"
+							actionListener="#{findEventsView.weekendEvents()}"
+							update="eventsTable" ajax="true" /></br>
+					<br><p:commandButton value="next-weekend" style="width:200px;"
+							actionListener="#{findEventsView.nextWeekendEvents()}"
+							update="eventsTable" ajax="true" /></br>
+					<br><p:calendar id="inline"
+							value="#{findEventsView.selectedDate}" style="width:100px;" /> <p:commandButton
+							value="find" style="width:80px;"
+							actionListener="#{findEventsView.getSelectedDateEvents()}"
+							update="eventsTable" ajax="true" /></br>
+				</h:form>
+			</p:panel>
+		</p:column>
+</p:row>
+</p:panelGrid>
+<h:panelGrid id="eventsTable">
+<p:dataTable var="event" value="#{findEventsView.events}" rows="10"
+                         paginator="true"
+                         paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
+                         rowsPerPageTemplate="5,10,15">
+        <p:column headerText="event-Id">
+            <h:outputText value="#{event.id}" />
+        </p:column>
+ 
+        <p:column headerText="event-title">
+            <h:outputText value="#{event.title}" />
+        </p:column>
+ 
+        <p:column headerText="event-start">
+            <h:outputText value="#{event.start}">
+            	<f:convertDateTime type="date" pattern="dd/MM/yyyy HH:mm" />
+            </h:outputText>
+        </p:column>
+        
+        <p:column headerText="event-end">
+            <h:outputText value="#{event.end}">
+            	<f:convertDateTime type="date" pattern="dd/MM/yyyy HH:mm" />
+            </h:outputText>
+        </p:column>
+        
+    </p:dataTable>
+</h:panelGrid>
+</p:panel>    
+</h:body>
+</html>

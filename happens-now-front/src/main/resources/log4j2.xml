@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Configuration name="happensNow"
+	Log4jContextSelector="org.apache.logging.log4j.core.async.AsyncLoggerContextSelector"
+	shutdownHook="enable">
+
+	<Appenders>
+		<RollingFile name="happensNowFront" fileName="/home/ridwann/happensNowFront.log"
+			filePattern="/home/ridwann/$${date:yyyy/MM/dd}/happensNowFront-%d{yyyy-MM-dd}-%i.log.gz"
+			append="true">
+			<PatternLayout pattern="%d{ISO8601}: %-5p [%-8t] [%C{1}.%M():%L] - %m%n" />
+			<Policies>
+				<SizeBasedTriggeringPolicy size="2 GB" />
+				<TimeBasedTriggeringPolicy interval="1"
+					modulate="true" />
+			</Policies>
+			<DefaultRolloverStrategy max="100" />
+		</RollingFile>
+	</Appenders>
+	
+	<Loggers>
+		<AsyncRoot level="DEBUG">
+			<AppenderRef ref="happensNowFront" />
+		</AsyncRoot>
+	</Loggers>
+</Configuration>
