@@ -6,23 +6,27 @@
 	xmlns:p="http://primefaces.org/ui">
 <h:head></h:head>
 <h:body>	
-<div style="width:800px">
+<f:view locale="#{userConfiguration.locale}" encoding="UTF-8" contentType="text/html"/>
+<div style="width:800px;font-family:aria;font-size:16px" >
 <div>
         <div style="font-weight: bold;width:75px;display: inline-block;float: left">
-        	<div>Home</div>
-        	<div>Admin</div>
+        	<div><p:commandLink style="text-decoration: none;color:black;" value="#{label['events.search.home']}"></p:commandLink></div>
+        	<div><p:commandLink style="text-decoration: none;color:black;" value="#{label['events.search.admin']}"></p:commandLink></div>
         </div>
-        <div style="font-weight: bold;text-align:center;width:650px; display: inline-block;float: none;"><h1>Happens Now!</h1></div>
+        <div style="font-weight: bold;text-align:center;width:650px; display: inline-block;float: none;"><h1>#{label['events.search.title1']}</h1></div>
         <div style="font-weight: bold;width:75px;display: inline-block;float: right">
-        	<div>${user.name}</div>
-        	<div>Logout</div>
+        	<div style="float:right;white-space: nowrap;">
+        	 <p:commandLink style="text-decoration: none;color:black;" value="${user.name}"></p:commandLink></div>
+        	<div>
+        	   <p:commandLink action="#{userLoginView.logout}" style="text-decoration: none;color:black;" value="#{label['events.search.logout']}"></p:commandLink>
+        	</div>
         </div>
 <div style="clear: both;"></div>        
 </div>
 <div>
         <div style="font-weight: bold;text-align:center;">
-        	<h4>What is your plan?</h4>
-        	<h4>I know</h4>
+        	<h4>#{label['events.search.title2']}</h4>
+        	<h4>#{label['events.search.title3']}</h4>
         </div>
 </div>
 </div>
@@ -30,7 +34,7 @@
 <div style="width:800px">
 <div style="float:left; width:400px">
         
-        <p:panel id="what" header="What" style="margin-bottom:20px">
+        <p:panel id="what" header="#{label['events.search.what']}" style="margin-bottom:20px">
         <p:selectOneMenu id="category" value="#{findEventsView.selectedCategory}" style="width:150px">
                 <f:selectItem itemLabel="Select Category" itemValue="" noSelectionOption="true" />
                 <f:selectItems value="#{findEventsView.categories}" />
@@ -40,26 +44,26 @@
                 </div>
                 <div style="width:400px;float: right">
         
-          <p:panel id="when" header="When" style="margin-bottom:20px;width:400px;text-align:right;">
+          <p:panel id="when" header="#{label['events.search.when']}" style="margin-bottom:20px;width:400px;text-align:right;">
 				<h:form>
-					<p:commandButton value="today" style="width:200px;valign:right;"
+					<p:commandButton value="#{label['events.search.today']}" style="width:200px;valign:right;"
 							actionListener="#{findEventsView.todayEvents()}"
 							update="eventsTable" ajax="true" />
 
-					<p:commandButton value="tonight" style="width:200px;"
+					<p:commandButton value="#{label['events.search.tonight']}" style="width:200px;"
 							actionListener="#{findEventsView.tonightEvents()}"
 							update="eventsTable" ajax="true" />
 
-					<p:commandButton value="this-weekend" style="width:200px;"
+					<p:commandButton value="#{label['events.search.this-weekend']}" style="width:200px;"
 							actionListener="#{findEventsView.weekendEvents()}"
 							update="eventsTable" ajax="true" />
-					<p:commandButton value="next-weekend" style="width:200px;"
+					<p:commandButton value="#{label['events.search.next-weekend']}" style="width:200px;"
 							actionListener="#{findEventsView.nextWeekendEvents()}"
 							update="eventsTable" ajax="true" />
 					<p:calendar id="inline"
 							value="#{findEventsView.selectedDate}" style="width:100px;" /> 
 							<p:commandButton
-							value="find" style="width:80px;"
+							value="#{label['events.search.find']}" style="width:80px;"
 							actionListener="#{findEventsView.getSelectedDateEvents()}"
 							update="eventsTable" ajax="true" />
 				</h:form>
@@ -71,22 +75,22 @@
 <p:dataTable id="eventsTable" style="with:800px" var="event" value="#{findEventsView.events}" rows="10"
                          paginator="true"
                          paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
-                         rowsPerPageTemplate="5,10,15">
-        <p:column headerText="event-Id">
+                         rowsPerPageTemplate="5,10,15" emptyMessage="#{label['events.search.empty-message']}">
+        <p:column headerText="#{label['events.search.event-id']}">
             <h:outputText value="#{event.id}" />
         </p:column>
  
-        <p:column headerText="event-title">
+        <p:column headerText="#{label['events.search.event-title']}">
             <h:outputText value="#{event.title}" />
         </p:column>
  
-        <p:column headerText="event-start">
+        <p:column headerText="#{label['events.search.event-start']}">
             <h:outputText value="#{event.start}">
             	<f:convertDateTime type="date" pattern="dd/MM/yyyy HH:mm" />
             </h:outputText>
         </p:column>
         
-        <p:column headerText="event-end">
+        <p:column headerText="#{label['events.search.event-end']}">
             <h:outputText value="#{event.end}">
             	<f:convertDateTime type="date" pattern="dd/MM/yyyy HH:mm" />
             </h:outputText>

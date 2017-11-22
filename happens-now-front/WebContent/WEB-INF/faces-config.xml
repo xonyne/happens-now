@@ -1,14 +1,28 @@
 <?xml version="1.0"?>
 <faces-config version="2.2" xmlns="http://xmlns.jcp.org/xml/ns/javaee"
  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-facesconfig_2_2.xsd">
- <application/>
- 
-	<navigation-rule>
-		<from-view-id>/login.xhtml</from-view-id>
-		<navigation-case>
-			<from-outcome>home</from-outcome>
-			<to-view-id>/events/find-events.xhtml</to-view-id>
-		</navigation-case>
-	</navigation-rule>
-
+ <navigation-rule>
+  <from-view-id>/login.xhtml</from-view-id>
+  <navigation-case>
+   <from-outcome>home</from-outcome>
+   <to-view-id>/events/find-events.xhtml</to-view-id>
+  </navigation-case>
+ </navigation-rule>
+ <navigation-rule>
+  <from-view-id>/events/find-events.xhtml</from-view-id>
+  <navigation-case>
+   <display-name>logout</display-name>
+   <from-outcome>login</from-outcome>
+   <to-view-id>/login.xhtml</to-view-id>
+  </navigation-case>
+ </navigation-rule>
+ <application>
+  <locale-config>
+   <default-locale>en</default-locale>
+  </locale-config>
+  <resource-bundle>
+   <base-name>org.xonyne.labels</base-name>
+   <var>label</var>
+  </resource-bundle>
+ </application>
 </faces-config>

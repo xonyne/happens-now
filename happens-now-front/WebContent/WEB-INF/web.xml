@@ -44,6 +44,18 @@
 		<url-pattern>*.xhtml</url-pattern>
 	</servlet-mapping>
 	<welcome-file-list>
-		<welcome-file>index.xhtml</welcome-file>
+		<welcome-file>login.xhtml</welcome-file>
 	</welcome-file-list>
+	
+	<!-- SSL Configuration 
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>SECURE index</web-resource-name>
+            <url-pattern>/login.xhtml</url-pattern>
+        </web-resource-collection>
+        <user-data-constraint>
+            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>
+	 -->
 </web-app>

@@ -10,5 +10,11 @@
   </PROCESS-ITEM>
  </PROCESS-ITEM>
  <PROCESS-ITEM NAME="rules:#events#find-events.xhtml"
-  PATH="/events/find-events.xhtml" SHAPE="240,33,0,0" model-entity="JSFProcessGroup"/>
+  PATH="/events/find-events.xhtml" SHAPE="256,56,50,25" model-entity="JSFProcessGroup">
+  <PROCESS-ITEM ID="rules:#events#find-events.xhtml:0" NAME="item"
+   PATH="/events/find-events.xhtml" model-entity="JSFProcessItem">
+   <PROCESS-ITEM-OUTPUT ID="login::#login.xhtml" NAME="output"
+    PATH="/login.xhtml" TARGET="rules:#login.xhtml" TITLE="login" model-entity="JSFProcessItemOutput"/>
+  </PROCESS-ITEM>
+ </PROCESS-ITEM>
 </PROCESS>

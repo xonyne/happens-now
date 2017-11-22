@@ -51,3 +51,7 @@ Installation Procedure:
 - Adjust the target logging folder in the file: happens-now/happens-now-backend/src/main/resources/log4j2.xml
 
 - Review the configuration in the file happens-now/happens-now-backend/src/main/resources/configuration.properties               
+
+- If you want to use SSL with the login page, remove the comments around the block 'SSL Configuration' in 
+  the file happens-now/happens-now-front/WebContent/WEB-INF/web.xml. After obtaining your SSL Certificate follow the 
+  instructions in this website http://ni3jboss.blogspot.qa/2016/06/how-to-configure-ssl-in-wildfly-10.html. 

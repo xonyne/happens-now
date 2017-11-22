@@ -4,20 +4,22 @@
 	xmlns:h="http://java.sun.com/jsf/html"
 	xmlns:f="http://java.sun.com/jsf/core"
 	xmlns:p="http://primefaces.org/ui">
+
 <h:head></h:head>
 <h:body>
+<f:view locale="#{userConfiguration.locale}" encoding="UTF-8" contentType="text/html"/>
 <p:panel header="login" style="width:400px">
 <h:form>        
    <p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />    
  
         <h:panelGrid columns="2" cellpadding="5">
-            <h:outputLabel for="username" value="Username:" />
+            <h:outputLabel for="username" value="#{label['login.username']}" />
             <p:inputText id="username" value="#{userLoginView.username}" required="true" label="username" />
  
-            <h:outputLabel for="password" value="Password:" />
+            <h:outputLabel for="password" value="#{label['login.password']}" />
             <p:password id="password" value="#{userLoginView.password}" required="true" label="password" />
  
-                <p:commandButton value="Login" action="#{userLoginView.login}"/>
+                <p:commandButton value="#{label['login.login']}" action="#{userLoginView.login}"/>
         </h:panelGrid>
 </h:form>
  </p:panel>
