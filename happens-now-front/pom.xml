@@ -45,10 +45,11 @@
 			<artifactId>primefaces</artifactId>
 			<version>6.1</version>
 		</dependency>
+<!-- https://mvnrepository.com/artifact/org.primefaces.extensions/all-themes -->
 <dependency>
- <groupId>org.primefaces.themes</groupId>
- <artifactId>all-themes</artifactId>
- <version>1.0.10</version>
+    <groupId>org.primefaces.extensions</groupId>
+    <artifactId>all-themes</artifactId>
+    <version>1.0.8</version>
 </dependency>
 		<dependency>
 			<groupId>org.xonyne</groupId>
@@ -73,11 +74,4 @@
             <artifactId>disruptor</artifactId>
         </dependency>				
 	</dependencies>
-	<repositories>
-	<repository>
-		<id>prime-repo</id>
-		<name>Prime Repo</name>
-		<url>http://repository.primefaces.org</url>
-	</repository>
-	</repositories>
 </project>

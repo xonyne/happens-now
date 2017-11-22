@@ -1,7 +1,6 @@
 package org.xonyne.events.util;
 
 import java.io.IOException;
-import java.io.PrintWriter;
 
 import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
@@ -17,7 +16,6 @@ import javax.servlet.http.HttpSession;
 
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.xonyne.events.dto.UserDto;
 import org.xonyne.events.service.EventsService;
 
 @WebFilter(filterName = "PermissionFilter", dispatcherTypes = { DispatcherType.ERROR, DispatcherType.ASYNC, DispatcherType.FORWARD, DispatcherType.INCLUDE, DispatcherType.REQUEST })
