@@ -60,13 +60,14 @@
 					<p:commandButton value="#{label['events.search.next-weekend']}" style="width:200px;"
 							actionListener="#{findEventsView.nextWeekendEvents()}"
 							update="eventsTable" ajax="true" />
+					<p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
 					<p:calendar id="inline"
 							value="#{findEventsView.selectedDate}" style="width:100px;" /> 
 							<p:commandButton
 							value="#{label['events.search.find']}" style="width:80px;"
 							actionListener="#{findEventsView.getSelectedDateEvents()}"
 							update="eventsTable" ajax="true" />
-				</h:form>
+				</h:form> 
 			</p:panel>
 </div>
 </div>

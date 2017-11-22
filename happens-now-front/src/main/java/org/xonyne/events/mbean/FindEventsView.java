@@ -4,8 +4,10 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
+import javax.faces.context.FacesContext;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xonyne.events.config.AppContext;
@@ -45,6 +47,11 @@ public class FindEventsView {
 	}
 
 	public void getSelectedDateEvents(){
+		if (selectedDate == null){
+			FacesContext context = FacesContext.getCurrentInstance();
+			context.addMessage(null, new FacesMessage("Error",  "Select a date first"));
+			return;
+		}
 		this.events = AppContext.getEvetnsService().getSelectedDateEvents(selectedDate);
 	}
 
