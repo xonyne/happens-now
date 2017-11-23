@@ -9,6 +9,7 @@
 	</parent>
 	<packaging>war</packaging>
 	<build>
+	    <finalName>happens-now-front</finalName>
 		<sourceDirectory>src</sourceDirectory>
 		<plugins>
 			<plugin>
@@ -71,13 +72,13 @@
         <dependency>
             <groupId>com.lmax</groupId>
             <artifactId>disruptor</artifactId>
-        </dependency>				
+        </dependency>
+		<dependency>
+		    <groupId>javax</groupId>
+		    <artifactId>javaee-api</artifactId>
+		    <version>6.0</version>
+		    <scope>provided</scope>
+		</dependency>
+        				
 	</dependencies>
-	<repositories>
-	<repository>
-		<id>prime-repo</id>
-		<name>Prime Repo</name>
-		<url>http://repository.primefaces.org</url>
-	</repository>
-	</repositories>
 </project>

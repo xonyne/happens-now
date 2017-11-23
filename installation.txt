@@ -45,6 +45,17 @@ Installation Procedure:
                     </statement>
                 </datasource>
 
+- If you want to allow remote access to your application go to : wildfly-11.0.0.Final/standalone/configuration/stanalone.xml 
+   and apply the following change: 
+
+        <interface name="public">
+            <inet-address value="${jboss.bind.address:127.0.0.1}"/>
+        </interface>
+        TO
+        <interface name="public">
+            <inet-address value="${jboss.bind.address:0.0.0.0}"/>
+        </interface>
+
 - Extract the zip file postgresql.zip to the folder wildfly-11.0.0.Final/modules/system/layers/base/org
   after extracting the zip file you should have this path wildfly-11.0.0.Final/modules/system/layers/base/org/postgresql/main
   
