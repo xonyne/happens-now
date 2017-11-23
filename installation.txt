@@ -23,7 +23,7 @@ Installation Procedure:
   - Create the Datasource HappensNowDS as the following :
 
                 <datasource jta="false" jndi-name="java:/HappensNowDS" pool-name="HappensNowDS" enabled="true" use-java-context="true" use-ccm="false">
-                    <connection-url>jdbc:postgresql://YOUR.IP.ADDRESS.HERE:5432/HappensNowDS</connection-url>
+                    <connection-url>jdbc:postgresql://localhost:5432/happens-now</connection-url>
                     <driver-class>org.postgresql.Driver</driver-class>
                     <driver>postgresql</driver>
                     <pool>

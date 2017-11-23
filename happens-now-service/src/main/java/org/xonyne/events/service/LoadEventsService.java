@@ -262,14 +262,14 @@ public class LoadEventsService {
 		start.set(Calendar.HOUR_OF_DAY, 0);
 		start.set(Calendar.MINUTE, 0);
 		start.set(Calendar.SECOND, 0);
-		start.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
+		start.set(Calendar.DAY_OF_WEEK, 6);
 
 		Calendar end = Calendar.getInstance();
 		end.set(Calendar.HOUR_OF_DAY, 23);
 		end.set(Calendar.MINUTE, 59);
 		end.set(Calendar.SECOND, 59);
-		end.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR)+1);
-		end.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+		end.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR));
+		end.set(Calendar.DAY_OF_WEEK, 7);
 
 		List<EventDto> result = findEvents(start.getTime(), end.getTime());
 
@@ -282,15 +282,15 @@ public class LoadEventsService {
 		start.set(Calendar.MINUTE, 0);
 		start.set(Calendar.SECOND, 0);
 		start.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR)+1);
-		start.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
+		start.set(Calendar.DAY_OF_WEEK, 6);
 
 		Calendar end = Calendar.getInstance();
 		end.set(Calendar.HOUR_OF_DAY, 23);
 		end.set(Calendar.MINUTE, 59);
 		end.set(Calendar.SECOND, 59);
 		end.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-		end.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR)+1);
-		end.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+		end.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR));
+		end.set(Calendar.DAY_OF_WEEK, 7);
 
 		if (logger.isDebugEnabled()){
 			logger.debug(" start/end dates of next weekend:" + start.getTime() +","+ end.getTime());
