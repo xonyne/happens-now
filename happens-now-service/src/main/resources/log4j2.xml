@@ -4,8 +4,8 @@
 	shutdownHook="enable">
 
 	<Appenders>
-		<RollingFile name="loadEvents" fileName="/home/ridwann/loadEvents.log"
-			filePattern="/home/ridwann/$${date:yyyy/MM/dd}/loadEvents-%d{yyyy-MM-dd}-%i.log.gz"
+		<RollingFile name="loadEvents" fileName="/Users/kevin/Desktop/logs/loadEvents.log"
+			filePattern="/Users/kevin/Desktop/logs/$${date:yyyy/MM/dd}/loadEvents-%d{yyyy-MM-dd}-%i.log.gz"
 			append="true">
 			<PatternLayout pattern="%d{ISO8601}: %-5p [%-8t] [%C{1}.%M():%L] - %m%n" />
 			<Policies>
@@ -16,8 +16,8 @@
 			<DefaultRolloverStrategy max="100" />
 		</RollingFile>
 
-		<RollingFile name="happensNow" fileName="/home/ridwann/happensNow.log"
-			filePattern="/home/ridwann/$${date:yyyy/MM/dd}/happensNow-%d{yyyy-MM-dd}-%i.log.gz"
+		<RollingFile name="happensNow" fileName="/Users/kevin/Desktop/logs/happensNow.log"
+			filePattern="/Users/kevin/Desktop/logs/$${date:yyyy/MM/dd}/happensNow-%d{yyyy-MM-dd}-%i.log.gz"
 			append="true">
 			<PatternLayout pattern="%d{ISO8601}: %-5p [%-8t] [%C{1}.%M():%L] - %m%n" />
 			<Policies>

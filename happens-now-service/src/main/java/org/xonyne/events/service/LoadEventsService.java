@@ -80,7 +80,7 @@ public class LoadEventsService {
 		logger.info("init");
 	}
 
-	@Scheduled(fixedDelayString = "${loadEventsService.delayInMilliseconds}")
+	//@Scheduled(fixedDelayString = "${loadEventsService.delayInMilliseconds}")
 	public void loadEvents(){
 		try{
 			loadEventsLogger.debug("start load events");
@@ -238,7 +238,7 @@ public class LoadEventsService {
 	}
 
 	public List<EventDto> getTonightEvents(){
-		Calendar start = Calendar.getInstance();
+		Calendar start = (Calendar)Calendar.getInstance().clone();
 		start.set(Calendar.HOUR_OF_DAY, tonightStartHour);
 		start.set(Calendar.MINUTE, 0);
 		start.set(Calendar.SECOND, 0);
@@ -258,18 +258,23 @@ public class LoadEventsService {
 	 * Weekend end : Sunday in next week
 	 */
 	public List<EventDto> getWeekendEvents() {
-		Calendar start = Calendar.getInstance();
-		start.set(Calendar.HOUR_OF_DAY, 0);
+		Calendar start = (Calendar)Calendar.getInstance().clone();
+		start.set(Calendar.HOUR_OF_DAY, tonightStartHour);
 		start.set(Calendar.MINUTE, 0);
 		start.set(Calendar.SECOND, 0);
 		start.set(Calendar.DAY_OF_WEEK, 6);
+                start.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR));
 
-		Calendar end = Calendar.getInstance();
+		Calendar end = (Calendar)Calendar.getInstance().clone();
 		end.set(Calendar.HOUR_OF_DAY, 23);
 		end.set(Calendar.MINUTE, 59);
 		end.set(Calendar.SECOND, 59);
-		end.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR));
-		end.set(Calendar.DAY_OF_WEEK, 7);
+                end.set(Calendar.DAY_OF_WEEK, 1);
+		end.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR)+1);
+
+                if (logger.isDebugEnabled()){
+			logger.debug(" start/end dates of next weekend:" + start.getTime() +","+ end.getTime());
+		}
 
 		List<EventDto> result = findEvents(start.getTime(), end.getTime());
 
@@ -277,21 +282,20 @@ public class LoadEventsService {
 	}
 
 	public List<EventDto> getNextWeekendEvents() {
-		Calendar start = Calendar.getInstance();
-		start.set(Calendar.HOUR_OF_DAY, 0);
+		Calendar start = (Calendar)Calendar.getInstance().clone();
+		start.set(Calendar.HOUR_OF_DAY, tonightStartHour);
 		start.set(Calendar.MINUTE, 0);
 		start.set(Calendar.SECOND, 0);
+                start.set(Calendar.DAY_OF_WEEK, 6);
 		start.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR)+1);
-		start.set(Calendar.DAY_OF_WEEK, 6);
 
-		Calendar end = Calendar.getInstance();
+		Calendar end = (Calendar)Calendar.getInstance().clone();
 		end.set(Calendar.HOUR_OF_DAY, 23);
 		end.set(Calendar.MINUTE, 59);
 		end.set(Calendar.SECOND, 59);
-		end.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-		end.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR));
-		end.set(Calendar.DAY_OF_WEEK, 7);
-
+		end.set(Calendar.DAY_OF_WEEK, 1);
+		end.set(Calendar.WEEK_OF_YEAR, start.get(Calendar.WEEK_OF_YEAR)+1);
+                
 		if (logger.isDebugEnabled()){
 			logger.debug(" start/end dates of next weekend:" + start.getTime() +","+ end.getTime());
 		}

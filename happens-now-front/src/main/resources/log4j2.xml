@@ -4,8 +4,8 @@
 	shutdownHook="enable">
 
 	<Appenders>
-		<RollingFile name="happensNowFront" fileName="/home/ridwann/happensNowFront.log"
-			filePattern="/home/ridwann/$${date:yyyy/MM/dd}/happensNowFront-%d{yyyy-MM-dd}-%i.log.gz"
+		<RollingFile name="happensNowFront" fileName="/Users/kevin/Desktop/logs/happensNowFront.log"
+			filePattern="/Users/kevin/Desktop/logs/$${date:yyyy/MM/dd}/happensNowFront-%d{yyyy-MM-dd}-%i.log.gz"
 			append="true">
 			<PatternLayout pattern="%d{ISO8601}: %-5p [%-8t] [%C{1}.%M():%L] - %m%n" />
 			<Policies>

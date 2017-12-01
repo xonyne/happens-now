@@ -73,12 +73,12 @@
 </div>
 <div style="clear: both;"></div>
 <div style="width:800px">
-<p:dataTable id="eventsTable" style="with:800px" var="event" value="#{findEventsView.events}" rows="10"
+<p:dataTable id="eventsTable" style="width:800px" var="event" value="#{findEventsView.events}" rows="10"
                          paginator="true"
                          paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
                          rowsPerPageTemplate="5,10,15" emptyMessage="#{label['events.search.empty-message']}">
-        <p:column headerText="#{label['events.search.event-id']}">
-            <h:outputText value="#{event.id}" />
+        <p:column headerText="#{label['events.search.event-link']}">
+            <h:outputLink value="https://www.facebook.com/#{event.id}" target="_blank">facebook</h:outputLink>
         </p:column>
  
         <p:column headerText="#{label['events.search.event-title']}">
