@@ -40,7 +40,7 @@ public class UserLoginView {
         FacesMessage message = null;
         String target = "login";
         
-        UserDto user = AppContext.getEvetnsService().login(username, password);
+        UserDto user = AppContext.getEventsService().login(username, password);
 		
         if(user != null ) {
         	SessionUtils.setUser(true, user);

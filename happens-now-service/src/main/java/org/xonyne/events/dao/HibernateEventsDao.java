@@ -84,7 +84,7 @@ public class HibernateEventsDao extends AbstractDao implements EventsDao {
 		
 		try{
 			session = sessionFactory.openSession();
-			Query query = session.createQuery("from Event e where e.startDateTime BETWEEN :start AND :end ");
+			Query query = session.createQuery("from Event e where e.startDateTime BETWEEN :start AND :end ORDER BY e.startDateTime ");
 			query.setParameter("start", from).setParameter("end", to);
 			result = query.list();
 		}finally{

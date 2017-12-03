@@ -1,103 +1,109 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml"
-	xmlns:ui="http://java.sun.com/jsf/facelets"
-	xmlns:h="http://java.sun.com/jsf/html"
-	xmlns:f="http://java.sun.com/jsf/core"
-	xmlns:p="http://primefaces.org/ui">
-<h:head></h:head>
-<h:body>	
-<f:view locale="#{userConfiguration.locale}" encoding="UTF-8" contentType="text/html"/>
-<div style="width:800px;font-family:aria;font-size:16px" >
-<div>
-        <div style="font-weight: bold;width:75px;display: inline-block;float: left">
-        	<div><p:commandLink style="text-decoration: none;color:black;" value="#{label['events.search.home']}"></p:commandLink></div>
-        	<div><p:commandLink style="text-decoration: none;color:black;" value="#{label['events.search.admin']}"></p:commandLink></div>
-        </div>
-        <div style="font-weight: bold;text-align:center;width:650px; display: inline-block;float: none;"><h1>#{label['events.search.title1']}</h1></div>
-        <div style="font-weight: bold;width:75px;display: inline-block;float: right">
-        	<div style="float:right;white-space: nowrap;">
-        	 <p:commandLink style="text-decoration: none;color:black;" value="${user.name}"></p:commandLink></div>
-        	<div>
-        	   <p:commandLink action="#{userLoginView.logout}" style="text-decoration: none;color:black;" value="#{label['events.search.logout']}"></p:commandLink>
-        	</div>
-        </div>
-<div style="clear: both;"></div>        
-</div>
-<div>
-        <div style="font-weight: bold;text-align:center;">
-        	<h4>#{label['events.search.title2']}</h4>
-        	<h4>#{label['events.search.title3']}</h4>
-        </div>
-</div>
-</div>
-
-<div style="width:800px">
-<div style="float:left; width:400px">
-        
-        <p:panel id="what" header="#{label['events.search.what']}" style="margin-bottom:20px">
-        <p:selectOneMenu id="category" value="#{findEventsView.selectedCategory}" style="width:150px">
-                <f:selectItem itemLabel="Select Category" itemValue="" noSelectionOption="true" />
-                <f:selectItems value="#{findEventsView.categories}" />
-            </p:selectOneMenu>        
-        
-        </p:panel>
+      xmlns:ui="http://java.sun.com/jsf/facelets"
+      xmlns:h="http://java.sun.com/jsf/html"
+      xmlns:f="http://java.sun.com/jsf/core"
+      xmlns:p="http://primefaces.org/ui">
+    <h:head></h:head>
+    <h:body>	
+        <f:view locale="#{userConfiguration.locale}" encoding="UTF-8" contentType="text/html"/>
+        <div style="width:800px;font-family:aria;font-size:16px" >
+            <div>
+                <div style="font-weight: bold;width:75px;display: inline-block;float: left">
+                    <div><p:commandLink style="text-decoration: none;color:black;" value="#{label['events.search.home']}"></p:commandLink></div>
+                    <div><p:commandLink style="text-decoration: none;color:black;" value="#{label['events.search.admin']}"></p:commandLink></div>
                 </div>
-                <div style="width:400px;float: right">
-        
-          <p:panel id="when" header="#{label['events.search.when']}" style="margin-bottom:20px;width:400px;text-align:right;">
-				<h:form>
-					<p:commandButton value="#{label['events.search.today']}" style="width:200px;valign:right;"
-							actionListener="#{findEventsView.todayEvents()}"
-							update="eventsTable" ajax="true" />
+                <div style="font-weight: bold;text-align:center;width:650px; display: inline-block;float: none;"><h1>#{label['events.search.title1']}</h1></div>
+                <div style="font-weight: bold;width:75px;display: inline-block;float: right">
+                    <div style="float:right;white-space: nowrap;">
+                        <p:commandLink style="text-decoration: none;color:black;" value="${user.name}"></p:commandLink></div>
+                    <div>
+                        <p:commandLink action="#{userLoginView.logout}" style="text-decoration: none;color:black;" value="#{label['events.search.logout']}"></p:commandLink>
+                    </div>
+                </div>
+                <div style="clear: both;"></div>        
+            </div>
+            <div>
+                <div style="font-weight: bold;text-align:center;">
+                    <h4>#{label['events.search.title2']}</h4>
+                    <h4>#{label['events.search.title3']}</h4>
+                </div>
+            </div>
+        </div>
 
-					<p:commandButton value="#{label['events.search.tonight']}" style="width:200px;"
-							actionListener="#{findEventsView.tonightEvents()}"
-							update="eventsTable" ajax="true" />
+        <div style="width:800px">
+            <div style="float:left; width:400px">
+                <p:panel id="when" header="#{label['events.search.when']}" style="margin-bottom:20px;width:400px;text-align:left;">
+                    <h:form>
+                        <p:commandButton value="#{label['events.search.today']}" style="width:200px;"
+                                         actionListener="#{findEventsView.todayEvents()}"
+                                         update="eventsTable" ajax="true" />
 
-					<p:commandButton value="#{label['events.search.this-weekend']}" style="width:200px;"
-							actionListener="#{findEventsView.weekendEvents()}"
-							update="eventsTable" ajax="true" />
-					<p:commandButton value="#{label['events.search.next-weekend']}" style="width:200px;"
-							actionListener="#{findEventsView.nextWeekendEvents()}"
-							update="eventsTable" ajax="true" />
-					<p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
-					<p:calendar id="inline"
-							value="#{findEventsView.selectedDate}" style="width:100px;" /> 
-							<p:commandButton
-							value="#{label['events.search.find']}" style="width:80px;"
-							actionListener="#{findEventsView.getSelectedDateEvents()}"
-							update="eventsTable" ajax="true" />
-				</h:form> 
-			</p:panel>
-</div>
-</div>
-<div style="clear: both;"></div>
-<div style="width:800px">
-<p:dataTable id="eventsTable" style="width:800px" var="event" value="#{findEventsView.events}" rows="10"
+                        <p:commandButton value="#{label['events.search.tonight']}" style="width:200px;"
+                                         actionListener="#{findEventsView.tonightEvents()}"
+                                         update="eventsTable" ajax="true" />
+
+                        <p:commandButton value="#{label['events.search.this-weekend']}" style="width:200px;"
+                                         actionListener="#{findEventsView.weekendEvents()}"
+                                         update="eventsTable" ajax="true" />
+                        <p:commandButton value="#{label['events.search.next-weekend']}" style="width:200px;"
+                                         actionListener="#{findEventsView.nextWeekendEvents()}"
+                                         update="eventsTable" ajax="true" />
+                        <p:messages id="messages" showDetail="true" autoUpdate="true" closable="true" />
+                        <p:calendar id="inline"
+                                    value="#{findEventsView.selectedDate}" style="width:100px;" /> 
+                        <p:commandButton
+                            value="#{label['events.search.find']}" style="width:80px;"
+                            actionListener="#{findEventsView.getSelectedDateEvents()}"
+                            update="eventsTable" ajax="true" />
+                    </h:form> 
+                </p:panel>
+
+            </div>
+            <div style="width:380px;float: right">
+                <p:panel id="what" header="#{label['events.search.what']}" style="margin-bottom:20px;text-align:right;" >
+                    <p:selectOneMenu id="category" value="#{findEventsView.selectedCategory}" style="width:150px" disabled="true">
+                        <f:selectItem itemLabel="Select Category" itemValue="" noSelectionOption="true" />
+                        <f:selectItems value="#{findEventsView.categories}" />
+                    </p:selectOneMenu>        
+                </p:panel>
+
+                <p:panel id="whom" header="#{label['events.search.whom']}" style="min-height: 100px;margin-bottom:20px;text-align:right;">
+                    <p:selectOneRadio id="companion" value="#{findEventsView.companion}" style="float: right" disabled="true" >
+                        <f:selectItem itemLabel="#{label['general.yes']}" itemValue="1" />
+                        <f:selectItem itemLabel="#{label['general.no']}" itemValue="0" />
+                    </p:selectOneRadio>     
+                </p:panel>
+
+            </div>
+        </div>
+        <div style="clear: both;"></div>
+        <div style="width:800px">
+            <p:dataTable id="eventsTable" style="width:800px" var="event" value="#{findEventsView.events}" rows="10"
                          paginator="true"
                          paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
                          rowsPerPageTemplate="5,10,15" emptyMessage="#{label['events.search.empty-message']}">
-        <p:column headerText="#{label['events.search.event-link']}">
-            <h:outputLink value="https://www.facebook.com/#{event.id}" target="_blank">facebook</h:outputLink>
-        </p:column>
- 
-        <p:column headerText="#{label['events.search.event-title']}">
-            <h:outputText value="#{event.title}" />
-        </p:column>
- 
-        <p:column headerText="#{label['events.search.event-start']}">
-            <h:outputText value="#{event.start}">
-            	<f:convertDateTime type="date" pattern="dd/MM/yyyy HH:mm" />
-            </h:outputText>
-        </p:column>
-        
-        <p:column headerText="#{label['events.search.event-end']}">
-            <h:outputText value="#{event.end}">
-            	<f:convertDateTime type="date" pattern="dd/MM/yyyy HH:mm" />
-            </h:outputText>
-        </p:column>
-        
-    </p:dataTable>
-</div>
-</h:body>
+                <p:column headerText="#{label['events.search.event-link']}">
+                    <h:outputLink value="https://www.facebook.com/#{event.id}" target="_blank">facebook</h:outputLink>
+                </p:column>
+
+                <p:column headerText="#{label['events.search.event-title']}">
+                    <h:outputText value="#{event.title}" />
+                </p:column>
+
+                <p:column headerText="#{label['events.search.event-start']}">
+                    <h:outputText value="#{event.start}">
+                        <f:convertDateTime type="date" pattern="dd/MM/yyyy HH:mm" />
+                    </h:outputText>
+                </p:column>
+
+                <p:column headerText="#{label['events.search.event-end']}">
+                    <h:outputText value="#{event.end}">
+                        <f:convertDateTime type="date" pattern="dd/MM/yyyy HH:mm" />
+                    </h:outputText>
+                </p:column>
+
+            </p:dataTable>
+        </div>
+    </h:body>
 </html>

@@ -19,7 +19,7 @@ public final class AppContext{
 		ctx = context;
 	}
 
-	public static EventsService getEvetnsService(){
+	public static EventsService getEventsService(){
 		return ctx.getBean(EventsService.class);
 	}
 }
