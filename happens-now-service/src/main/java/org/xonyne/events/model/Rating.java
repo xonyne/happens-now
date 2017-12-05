@@ -18,20 +18,21 @@ import javax.persistence.Table;
  */
 @Entity
 @Table(name="rating")
-@SequenceGenerator(name="rating_ratingId_seq", sequenceName="rating_ratingId_seq", initialValue = 1, allocationSize = 1)
+@SequenceGenerator(name="rating_rating_id_seq", sequenceName="rating_rating_id_seq", initialValue = 1, allocationSize = 1)
 public class Rating {
 
-	@GeneratedValue(generator="rating_ratingId_seq")
+	@GeneratedValue(generator="rating_rating_id_seq")
 	@Id
 	@Column(name="rating_id")
 	private Long id;
-	private Integer rating;
+	
+        private Integer rating;
 	
 	@OneToOne()
-	@JoinColumn(name="eventId")
+	@JoinColumn(name="event_id")
 	private Event event;
 	@OneToOne()
-	@JoinColumn(name="userId")
+	@JoinColumn(name="user_id")
 	private User user;
 
 	public Rating(){
@@ -52,6 +53,14 @@ public class Rating {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+        
+        public User getUser() {
+		return this.user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
 	}
 
 	public Integer getRating() {

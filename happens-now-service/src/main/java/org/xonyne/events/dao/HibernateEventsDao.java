@@ -19,6 +19,7 @@ import org.xonyne.events.dto.EventDto;
 import org.xonyne.events.jsonmapper.dto.FacebookEvent;
 import org.xonyne.events.model.Event;
 import org.xonyne.events.model.Place;
+import org.xonyne.events.model.Rating;
 import org.xonyne.events.model.User;
 
 @Repository
@@ -48,6 +49,12 @@ public class HibernateEventsDao extends AbstractDao implements EventsDao {
 	@Transactional
 	public void merge(Event event) {
 		persistObject(event);
+	}
+        
+        @Override
+	@Transactional
+	public void merge(Rating rating) {
+		persistObject(rating);
 	}
 	
 	@Override
@@ -95,4 +102,15 @@ public class HibernateEventsDao extends AbstractDao implements EventsDao {
 		
 		return result;
 	}
+
+    @Override
+    public Rating findOrPersist(Rating rating) {
+        Rating storedRating = entityManager.find(Rating.class, rating.getId());
+		if (storedRating == null){
+			persistObject(rating);
+			storedRating = entityManager.find(Rating.class, rating.getId());
+		}
+		
+		return storedRating;
+    }
 }
