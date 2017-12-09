@@ -9,6 +9,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 /**
  * @author ridwann
@@ -27,6 +28,9 @@ public class User {
 	private String name;
 	private String userName;
 	private String password;
+        
+        @Transient
+        private boolean isStale;
 
 	public User(){
 
@@ -39,6 +43,7 @@ public class User {
 		this.name = name;
 		this.userName = userName;
 		this.password = password;
+                this.isStale = false;
 	}
 
 	public Long getId() {
@@ -71,6 +76,14 @@ public class User {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+        
+        public boolean getIsStale() {
+		return this.isStale;
+	}
+
+	public void setIsStale(boolean isStale) {
+		this.isStale = isStale;
 	}
 
 }

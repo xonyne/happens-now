@@ -12,6 +12,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 /**
  * @author ridwann
@@ -32,6 +33,9 @@ public class Place {
 	@OneToOne(targetEntity=Location.class, cascade={CascadeType.ALL})
 	@JoinColumn(name="location_Id")
 	public Location location;
+        
+        @Transient
+        private boolean isStale;
 
 	public Place(){
 
@@ -42,6 +46,7 @@ public class Place {
 		this.id = id;
 		this.name = name;
 		this.location = location;
+                this.isStale = false;
 	}
 
 	public Long getId() {
@@ -66,6 +71,14 @@ public class Place {
 
 	public void setLocation(Location location) {
 		this.location = location;
+	}
+        
+        public boolean getIsStale() {
+		return this.isStale;
+	}
+
+	public void setIsStale(boolean isStale) {
+		this.isStale = isStale;
 	}
 
 	

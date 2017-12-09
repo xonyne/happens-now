@@ -2,7 +2,6 @@ package org.xonyne.events.dao;
 
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
@@ -11,16 +10,11 @@ import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.xonyne.events.dto.EventDto;
-import org.xonyne.events.jsonmapper.dto.FacebookEvent;
 import org.xonyne.events.model.Event;
 import org.xonyne.events.model.Place;
 import org.xonyne.events.model.Rating;
-import org.xonyne.events.model.User;
 
 @Repository
 public class HibernateEventsDao extends AbstractDao implements EventsDao {
@@ -36,9 +30,9 @@ public class HibernateEventsDao extends AbstractDao implements EventsDao {
 	@Override
 	@Transactional
 	public Event findEvent(Event event){
-		logger.debug("find event with id:" + event.getEventId());
+		logger.debug("find event with id:" + event.getId());
 		try {
-			return entityManager.find(Event.class, event.getEventId());
+			return entityManager.find(Event.class, event.getId());
 		} catch (RuntimeException re) {
 			logger.error("error in find Event, "+re.getMessage(), re);
 			throw re;
@@ -56,17 +50,44 @@ public class HibernateEventsDao extends AbstractDao implements EventsDao {
 	public void merge(Rating rating) {
 		persistObject(rating);
 	}
+        
+        @Override
+	@Transactional
+	public Rating findOrPersist(Rating rating) {
+		SessionFactory sessionFactory = getSession();
+		Session session = null;
+		Rating storedRating = null;
+		
+		try{
+			session = sessionFactory.openSession();
+			Query query = session.createQuery("from Rating r where r.event = :event AND r.user = :user");
+			query.setParameter("event", rating.getEvent().getId()).setParameter("user", rating.getUser().getId());
+			storedRating = (Rating) query.uniqueResult();
+                        if (storedRating == null) {
+                            persistObject(rating);
+			storedRating = entityManager.find(Rating.class, rating.getId());
+		}
+		}finally{
+			if (session != null){
+				session.close();
+			}
+		}
+		
+		return rating;
+	}
 	
 	@Override
 	@Transactional
 	public Event findOrPersist(Event event) {
-		Event storedEvent = entityManager.find(Event.class, event.getEventId());
+		Event storedEvent = entityManager.find(Event.class, event.getId());
 		if (storedEvent == null){
 			persistObject(event);
-			storedEvent = entityManager.find(Event.class, event.getEventId());
-		}
+			storedEvent = entityManager.find(Event.class, event.getId());
+		} else {
+                    storedEvent.setIsStale(true);
+                }
 		
-		return event;
+		return storedEvent;
 	}
 
 	@Override
@@ -76,10 +97,11 @@ public class HibernateEventsDao extends AbstractDao implements EventsDao {
 		if (storedPlace == null){
 			persistObject(place);
 			storedPlace = entityManager.find(Place.class, place.getId());
-		}
+		} else {
+                    storedPlace.setIsStale(true);
+                }
 		
 		return storedPlace;
-		
 	}
 
 	@Override
@@ -102,15 +124,4 @@ public class HibernateEventsDao extends AbstractDao implements EventsDao {
 		
 		return result;
 	}
-
-    @Override
-    public Rating findOrPersist(Rating rating) {
-        Rating storedRating = entityManager.find(Rating.class, rating.getId());
-		if (storedRating == null){
-			persistObject(rating);
-			storedRating = entityManager.find(Rating.class, rating.getId());
-		}
-		
-		return storedRating;
-    }
 }

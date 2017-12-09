@@ -15,6 +15,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
+import javax.persistence.Transient;
 
 
 /**
@@ -72,6 +73,9 @@ public class Event {
 	@OneToOne()
 	@JoinColumn(name="place_id")
 	public Place place;
+        
+        @Transient
+        private boolean isStale;
 
 	public Event(Long eventId, String title, String description,
 			Date startDateTime, Date endDateTime, String url, Set<Tag> tags,
@@ -87,17 +91,18 @@ public class Event {
 		this.interestedUsers = interestedUsers;
 		this.attendingUsers = attendingUsers;
 		this.place = place;
+                this.isStale = false;
 	}
 	
 	public Event(){
 
 	}
 
-	public Long getEventId() {
+	public Long getId() {
 		return eventId;
 	}
 
-	public void setEventId(Long eventId) {
+	public void setId(Long eventId) {
 		this.eventId = eventId;
 	}
 
@@ -172,5 +177,12 @@ public class Event {
 	public void setPlace(Place place) {
 		this.place = place;
 	}
+        
+        public boolean getIsStale() {
+		return this.isStale;
+	}
 
+	public void setIsStale(boolean isStale) {
+		this.isStale = isStale;
+	}
 }

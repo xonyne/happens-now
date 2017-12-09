@@ -36,7 +36,6 @@ public class Rating {
 	private User user;
 
 	public Rating(){
-
 	}
 
 	public Event getEvent() {
@@ -70,6 +69,5 @@ public class Rating {
 	public void setRating(Integer rating) {
 		this.rating = rating;
 	}
-
-	
+        
 }

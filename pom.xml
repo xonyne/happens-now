@@ -27,10 +27,12 @@
         <version.clean.plugin>3.0.0</version.clean.plugin>
         <version.install.plugin>2.5.2</version.install.plugin>
         <version.dependency.plugin>2.10</version.dependency.plugin>
-		<version.resteasy>3.0.16.Final</version.resteasy>
+	<version.resteasy>3.0.16.Final</version.resteasy>
 		
         <log4j2.version>2.1</log4j2.version>
         <junit.version>4.12</junit.version>
+        <mockito.version>1.10.19</mockito.version>
+        <powermock.version>1.7.3</powermock.version>
         <postgresql.version>9.3-1101.jdbc41</postgresql.version>
         <spring.version>4.3.6.RELEASE</spring.version>
         <lmax.version>3.3.0</lmax.version>
@@ -92,7 +94,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>${version.postgres}</version>
+            <version>${postgresql.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>

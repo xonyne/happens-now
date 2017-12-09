@@ -29,7 +29,9 @@ public class HibernateUsersDao extends AbstractDao implements UsersDao {
 		if (storedUser == null){
 			persistObject(user);
 			storedUser = entityManager.find(User.class, user.getId());
-		}
+		} else {
+                    storedUser.setIsStale(true);
+                }
 		
 		return storedUser;
 	}
