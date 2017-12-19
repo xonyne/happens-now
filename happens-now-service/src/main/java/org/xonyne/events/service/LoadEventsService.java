@@ -19,7 +19,6 @@ import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.xonyne.commons.Utils;
 import org.xonyne.events.dao.EventsDao;
 import org.xonyne.events.dao.UsersDao;
@@ -40,14 +39,18 @@ import org.xonyne.events.model.User;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.xonyne.events.model.Rating;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneOffset;
+import java.util.logging.Level;
 
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class LoadEventsService {
 
-    private Logger loadEventsLogger = org.slf4j.LoggerFactory.getLogger("LoadEventService");
-    private Logger logger = org.slf4j.LoggerFactory.getLogger(LoadEventsService.class);
+    private final Logger loadEventsLogger = org.slf4j.LoggerFactory.getLogger("LoadEventService");
+    private final Logger logger = org.slf4j.LoggerFactory.getLogger(LoadEventsService.class);
 
     @Value("${loadEventsService.facebookEventsByLocationUrl}")
     private String facebookEventsByLocationUrl;
@@ -61,16 +64,19 @@ public class LoadEventsService {
     private Integer distance;
     @Value("${loadEventsService.facebookApiAccessToken}")
     private String facebookApiAccessToken;
-    @Value("${loadEventsService.attendingRatingModifier}")
-    private Integer attendingRatingModifier;
-    @Value("${loadEventsService.interestedRatingModifier}")
-    private Integer interestedRatingModifier;
-    @Value("${loadEventsService.callLoopsPerServiceInvocation}")
-    private Integer callLoopsPerServiceInvocation;
     @Value("${loadEventsService.tonightStartHour}")
     private Integer tonightStartHour;
+    @Value("${loadEventsService.city}")
+    private String city;
+    @Value("${loadEventsService.fetchTimePeriodInDays}")
+    private Integer fetchTimePeriodInDays;
+    @Value("${loadEventsService.delayBetweenGraphAPICallsInMs}")
+    private Integer delayBetweenGraphAPICallsInMs;
 
     ServiceStatistics stats;
+    
+    LocalDateTime startDate;
+    LocalDateTime endDate;
 
     @Autowired
     private EventsDao eventsDao;
@@ -85,17 +91,25 @@ public class LoadEventsService {
     @PostConstruct
     public void init() {
         logger.info("init");
+        startDate = LocalDateTime.of(LocalDate.now(), LocalTime.of(0, 0));
+        endDate = LocalDateTime.of(LocalDate.now(), LocalTime.of(23, 59));
     }
-
-    @Scheduled(fixedDelayString = "${loadEventsService.delayInMilliseconds}")
+    
+    // --> load events every night 01:00 AM
+    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
+    //@Scheduled(cron = "0 0 1 * * ?")
     public void loadEvents() {
         loadEventsLogger.debug("============== ============== ==============  LOAD EVENTS SERVICE CALLED ============== ============== ============== ");
         JSONObject jsonData;
         FacebookEventResults facebookEvents;
         ObjectMapper objectMapper;
+        Integer dayShift = 0;
+        
         stats = new ServiceStatistics();
-
-        for (int i = 1; i <= callLoopsPerServiceInvocation; i++) {
+        for (int i = 1; i <= fetchTimePeriodInDays; i++) {
+            startDate = startDate.plusDays(1);
+            endDate = endDate.plusDays(1);
+            dayShift++;
             try {
                 loadEventsLogger.debug("starting to load events");
 
@@ -121,8 +135,11 @@ public class LoadEventsService {
                 }
 
                 loadEventsLogger.debug("***** ***** ***** START READ FACEBOOK EVENTS ***** ***** *****");
-                loadEventsLogger.debug("Longitude: " + longitude);
+                loadEventsLogger.debug("Day shift: " + dayShift);
+                loadEventsLogger.debug("Start date: " + startDate);
+                loadEventsLogger.debug("End date: " + endDate);
                 loadEventsLogger.debug("Latitude: " + latitude);
+                loadEventsLogger.debug("Longitude: " + longitude);
                 loadEventsLogger.debug("Distance: " + distance);
                 loadEventsLogger.debug("Access token: " + facebookApiAccessToken);
                 loadEventsLogger.debug("Events retreived: " + facebookEvents.events.length);
@@ -140,43 +157,9 @@ public class LoadEventsService {
                         if (!event.getIsStale()) {
                             stats.increaseNewEvents(1);
                         }
-                        Set<User> storedInterestedUsers = findOrStoreInterestedUsers(facebookEvent, objectMapper, event);
-                        Set<User> storedAttendendingUsers = findOrStoreAttendingUsers(facebookEvent, objectMapper, event);
-                        event.setAttendingUsers(storedAttendendingUsers);
-                        event.setInterestedUsers(storedInterestedUsers);
-                        loadEventsLogger.debug(" add attending and interested users");
-
+                        
                         eventsDao.merge(event);
                         loadEventsLogger.debug(" event stored successfully");
-
-                        Rating rating = new Rating();
-                        for (User user : storedInterestedUsers) {
-                            if (!user.getIsStale()) {
-                                stats.increaseNewUsers(1);
-                            }
-                            rating.setEvent(event);
-                            rating.setUser(user);
-                            rating = eventsDao.findOrPersist(rating);
-                            if (rating.getRating() < interestedRatingModifier) {
-                                rating.setRating(interestedRatingModifier);
-                                eventsDao.merge(rating);
-                            }
-                        }
-                        loadEventsLogger.debug(" interested ratings stored successfully");
-
-                        for (User user : storedAttendendingUsers) {
-                            if (!user.getIsStale()) {
-                                stats.increaseNewUsers(1);
-                            }
-                            rating.setEvent(event);
-                            rating.setUser(user);
-                            rating = eventsDao.findOrPersist(rating);
-                            if (rating.getRating() < attendingRatingModifier) {
-                                rating.setRating(attendingRatingModifier);
-                                eventsDao.merge(rating);
-                            }
-                        }
-                        loadEventsLogger.debug(" attending ratings stored successfully");
 
                     } catch (Exception e) {
                         logger.error("error in storing information of event id:" + facebookEvent.id + "," + e.getMessage(), e);
@@ -185,17 +168,60 @@ public class LoadEventsService {
                 }
             } catch (Exception ex) {
                 logger.error("error in load events," + ex.getMessage(), ex);
+            } finally {
+                try {
+                    // maybe dangerous because of blockage of the service (login not possible)
+                    Thread.sleep(delayBetweenGraphAPICallsInMs);
+                } catch (InterruptedException ex) {
+                    java.util.logging.Logger.getLogger(LoadEventsService.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
-
         }
         loadEventsLogger.debug("%%%%% %%%%% %%%%% LOAD EVENTS SERVICE INVOCATION STATISTICS %%%%% %%%%% %%%%%");
-        loadEventsLogger.debug("Events: " + stats.getTotalEvents());
-        loadEventsLogger.debug("Call loops: " + callLoopsPerServiceInvocation);
-        loadEventsLogger.debug("Graph API calls made: " + stats.getGraphApiCalls());
-        loadEventsLogger.debug("New events in this invocation: " + stats.getNewEvents());
-        loadEventsLogger.debug("New places in this invocation: " + stats.getNewPlaces());
-        loadEventsLogger.debug("New users in this invocation: " + stats.getNewUsers());
+        loadEventsLogger.debug("Days fetched: " + fetchTimePeriodInDays);
+        loadEventsLogger.debug("Total events: " + stats.getTotalEvents());
+        loadEventsLogger.debug("New events: " + stats.getNewEvents());
+        loadEventsLogger.debug("Events already in DB: " + (stats.getTotalEvents() - stats.getNewEvents()));
     }
+    
+    // --> load users and ratings every night 05:00 AM
+    //@Scheduled(cron = "0 0 5 * * ?")
+    public void loadUsersAndRatings() {
+        /**
+                         * Set<User> storedInterestedUsers =
+                         * findOrStoreInterestedUsers(facebookEvent,
+                         * objectMapper, event); Set<User>
+                         * storedAttendendingUsers =
+                         * findOrStoreAttendingUsers(facebookEvent,
+                         * objectMapper, event);
+                         * event.setAttendingUsers(storedAttendendingUsers);
+                         * event.setInterestedUsers(storedInterestedUsers);
+                         * loadEventsLogger.debug(" add attending and interested
+                         * users");
+                         */
+                                /**
+                         * Rating rating = new Rating(); for (User user :
+                         * storedInterestedUsers) { if (!user.getIsStale()) {
+                         * stats.increaseNewUsers(1); } rating.setEvent(event);
+                         * rating.setUser(user); rating =
+                         * eventsDao.findOrPersist(rating); if
+                         * (rating.getRating() < interestedRatingModifier) {
+                         * rating.setRating(interestedRatingModifier);
+                         * eventsDao.merge(rating); } } loadEventsLogger.debug("
+                         * interested ratings stored successfully");
+                         *
+                         * for (User user : storedAttendendingUsers) { if
+                         * (!user.getIsStale()) { stats.increaseNewUsers(1); }
+                         * rating.setEvent(event); rating.setUser(user); rating
+                         * = eventsDao.findOrPersist(rating); if
+                         * (rating.getRating() < attendingRatingModifier) {
+                         * rating.setRating(attendingRatingModifier);
+                         * eventsDao.merge(rating); } } loadEventsLogger.debug("
+                         * attending ratings stored successfully");
+                        *
+                         */
+    }
+    
 
     private Set<User> findOrStoreAttendingUsers(FacebookEvent facebookEvent, ObjectMapper objectMapper, Event event) throws IOException {
         String url;
@@ -237,6 +263,11 @@ public class LoadEventsService {
         // create place
         FacebookEventPlace facebookPlace = facebookEvent.place;
         FacebookEventLocation facebookLocation = facebookPlace.location;
+
+        // some events have no city set. Prevent NullPointerException.
+        if (facebookPlace.location.city == null) {
+            facebookPlace.location.city = this.city;
+        }
         Place place = new Place(facebookPlace.id, facebookPlace.name,
                 new Location(null, facebookLocation.city, facebookLocation.country,
                         facebookLocation.street, facebookLocation.zip, facebookLocation.latitude,
@@ -277,20 +308,29 @@ public class LoadEventsService {
 
     public String getEventsUrl() {
         StringBuilder url = new StringBuilder(facebookEventsByLocationUrl);
-        url.append("?lat=").append(latitude).append("&lng=").append(longitude).
-                append("&distance=").append(distance).append("&accessToken=").append(facebookApiAccessToken);
+        url
+                .append("?lat=").append(latitude)
+                .append("&lng=").append(longitude)
+                .append("&distance=").append(distance)
+                .append("&accessToken=").append(facebookApiAccessToken)
+                .append("&since=").append(startDate.toEpochSecond(ZoneOffset.UTC))
+                .append("&until=").append(endDate.toEpochSecond(ZoneOffset.UTC));
         return url.toString();
     }
 
     public String getInterestedUsersUrl(Long eventId) {
         StringBuilder url = new StringBuilder(facebookGraphApiUrl);
-        url.append(eventId).append("/interested?").append("&access_token=").append(facebookApiAccessToken);
+        url
+                .append(eventId).append("/interested?")
+                .append("&access_token=").append(facebookApiAccessToken);
         return url.toString();
     }
 
     public String getAttendingUsersUrl(Long eventId) {
         StringBuilder url = new StringBuilder(facebookGraphApiUrl);
-        url.append(eventId).append("/attending?").append("&access_token=").append(facebookApiAccessToken);
+        url
+                .append(eventId).append("/attending?")
+                .append("&access_token=").append(facebookApiAccessToken);
         return url.toString();
     }
 
