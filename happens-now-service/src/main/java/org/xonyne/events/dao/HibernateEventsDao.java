@@ -124,4 +124,23 @@ public class HibernateEventsDao extends AbstractDao implements EventsDao {
 		
 		return result;
 	}
+
+    @Override
+    public List<Event> findAll() {
+        SessionFactory sessionFactory = getSession();
+		Session session = null;
+		List<Event> result = null;
+		
+		try{
+			session = sessionFactory.openSession();
+			Query query = session.createQuery("from Event e");
+			result = query.list();
+		}finally{
+			if (session != null){
+				session.close();
+			}
+		}
+		
+		return result;
+    } 
 }

@@ -18,7 +18,10 @@ public interface EventsDao {
 	Event findOrPersist(Event event);
 
 	void merge(Event event);
+        
         void merge(Rating rating);
 
 	List<Event> findEvents(Date from, Date to);
+        
+        List<Event> findAll();
 }

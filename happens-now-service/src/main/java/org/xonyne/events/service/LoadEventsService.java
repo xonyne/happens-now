@@ -44,6 +44,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.logging.Level;
+import org.xonyne.events.model.Rating;
 
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -72,11 +73,15 @@ public class LoadEventsService {
     private Integer fetchTimePeriodInDays;
     @Value("${loadEventsService.delayBetweenGraphAPICallsInMs}")
     private Integer delayBetweenGraphAPICallsInMs;
+    @Value("${loadEventsService.interestedRatingModifier}")
+    private Integer interestedRatingModifier;
+    @Value("${loadEventsService.attendingRatingModifier}")
+    private Integer attendingRatingModifier;
 
-    ServiceStatistics stats;
-    
     LocalDateTime startDate;
     LocalDateTime endDate;
+
+    ObjectMapper objectMapper;
 
     @Autowired
     private EventsDao eventsDao;
@@ -93,19 +98,19 @@ public class LoadEventsService {
         logger.info("init");
         startDate = LocalDateTime.of(LocalDate.now(), LocalTime.of(0, 0));
         endDate = LocalDateTime.of(LocalDate.now(), LocalTime.of(23, 59));
+        objectMapper = new ObjectMapper();
     }
-    
+
     // --> load events every night 01:00 AM
-    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
     //@Scheduled(cron = "0 0 1 * * ?")
+    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
     public void loadEvents() {
-        loadEventsLogger.debug("============== ============== ==============  LOAD EVENTS SERVICE CALLED ============== ============== ============== ");
+        loadEventsLogger.debug("============== ============== ==============  LOAD EVENTS METHOD CALLED ============== ============== ============== ");
         JSONObject jsonData;
         FacebookEventResults facebookEvents;
-        ObjectMapper objectMapper;
         Integer dayShift = 0;
-        
-        stats = new ServiceStatistics();
+
+        ServiceStatistics eventStats = new ServiceStatistics();
         for (int i = 1; i <= fetchTimePeriodInDays; i++) {
             startDate = startDate.plusDays(1);
             endDate = endDate.plusDays(1);
@@ -120,15 +125,14 @@ public class LoadEventsService {
                 }
 
                 jsonData = JsonReader.readJsonFromUrl(url);
-                stats.increaseGraphApiCalls(1);
+                eventStats.increaseGraphApiCalls(1);
 
                 if (loadEventsLogger.isDebugEnabled()) {
                     loadEventsLogger.debug("json data retreived from facebook ");
                 }
 
-                objectMapper = new ObjectMapper();
                 facebookEvents = objectMapper.readValue(jsonData.toString(), FacebookEventResults.class);
-                stats.increaseTotalEvents(facebookEvents.events.length);
+                eventStats.increaseTotalEvents(facebookEvents.events.length);
 
                 if (loadEventsLogger.isDebugEnabled()) {
                     loadEventsLogger.debug("facebook events parsed");
@@ -151,15 +155,15 @@ public class LoadEventsService {
                         loadEventsLogger.debug("storing information of event id:" + facebookEvent.id);
                         Place place = findOrStorePlace(facebookEvent);
                         if (!place.getIsStale()) {
-                            stats.increaseNewPlaces(1);
+                            eventStats.increaseNewPlaces(1);
                         }
                         Event event = findOrStoreEvent(facebookEvent, place);
                         if (!event.getIsStale()) {
-                            stats.increaseNewEvents(1);
+                            eventStats.increaseNewEvents(1);
                         }
-                        
+
                         eventsDao.merge(event);
-                        loadEventsLogger.debug(" event stored successfully");
+                        loadEventsLogger.debug(" event " + event + " stored successfully");
 
                     } catch (Exception e) {
                         logger.error("error in storing information of event id:" + facebookEvent.id + "," + e.getMessage(), e);
@@ -170,7 +174,7 @@ public class LoadEventsService {
                 logger.error("error in load events," + ex.getMessage(), ex);
             } finally {
                 try {
-                    // maybe dangerous because of blockage of the service (login not possible)
+                    // maybe dangerous because of blockage of the service (login may be blocked)
                     Thread.sleep(delayBetweenGraphAPICallsInMs);
                 } catch (InterruptedException ex) {
                     java.util.logging.Logger.getLogger(LoadEventsService.class.getName()).log(Level.SEVERE, null, ex);
@@ -179,75 +183,105 @@ public class LoadEventsService {
         }
         loadEventsLogger.debug("%%%%% %%%%% %%%%% LOAD EVENTS SERVICE INVOCATION STATISTICS %%%%% %%%%% %%%%%");
         loadEventsLogger.debug("Days fetched: " + fetchTimePeriodInDays);
-        loadEventsLogger.debug("Total events: " + stats.getTotalEvents());
-        loadEventsLogger.debug("New events: " + stats.getNewEvents());
-        loadEventsLogger.debug("Events already in DB: " + (stats.getTotalEvents() - stats.getNewEvents()));
+        loadEventsLogger.debug("Total events: " + eventStats.getTotalEvents());
+        loadEventsLogger.debug("New events: " + eventStats.getNewEvents());
+        loadEventsLogger.debug("Events already in DB: " + (eventStats.getTotalEvents() - eventStats.getNewEvents()));
     }
-    
+
     // --> load users and ratings every night 05:00 AM
     //@Scheduled(cron = "0 0 5 * * ?")
+    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
     public void loadUsersAndRatings() {
-        /**
-                         * Set<User> storedInterestedUsers =
-                         * findOrStoreInterestedUsers(facebookEvent,
-                         * objectMapper, event); Set<User>
-                         * storedAttendendingUsers =
-                         * findOrStoreAttendingUsers(facebookEvent,
-                         * objectMapper, event);
-                         * event.setAttendingUsers(storedAttendendingUsers);
-                         * event.setInterestedUsers(storedInterestedUsers);
-                         * loadEventsLogger.debug(" add attending and interested
-                         * users");
-                         */
-                                /**
-                         * Rating rating = new Rating(); for (User user :
-                         * storedInterestedUsers) { if (!user.getIsStale()) {
-                         * stats.increaseNewUsers(1); } rating.setEvent(event);
-                         * rating.setUser(user); rating =
-                         * eventsDao.findOrPersist(rating); if
-                         * (rating.getRating() < interestedRatingModifier) {
-                         * rating.setRating(interestedRatingModifier);
-                         * eventsDao.merge(rating); } } loadEventsLogger.debug("
-                         * interested ratings stored successfully");
-                         *
-                         * for (User user : storedAttendendingUsers) { if
-                         * (!user.getIsStale()) { stats.increaseNewUsers(1); }
-                         * rating.setEvent(event); rating.setUser(user); rating
-                         * = eventsDao.findOrPersist(rating); if
-                         * (rating.getRating() < attendingRatingModifier) {
-                         * rating.setRating(attendingRatingModifier);
-                         * eventsDao.merge(rating); } } loadEventsLogger.debug("
-                         * attending ratings stored successfully");
-                        *
-                         */
-    }
-    
+        loadEventsLogger.debug("&&&&&&&&& &&&&&&&&& &&&&&&&&&  LOAD USERS AND RATINGS METHOD CALLED &&&&&&&&& &&&&&&&&& &&&&&&&&& ");
+        ServiceStatistics userAndRatingStats = new ServiceStatistics();
+        
+        List<Event> allEvents = eventsDao.findAll();
+        for (Event event : allEvents) {
+            Set<User> storedInterestedUsers = findOrStoreInterestedUsers(event.getId());
+            Set<User> storedAttendendingUsers = findOrStoreAttendingUsers(event.getId());
+            event.setAttendingUsers(storedAttendendingUsers);
+            event.setInterestedUsers(storedInterestedUsers);
+            loadEventsLogger.debug(" add attending and interested users to event " + event);
+      
+            for (User user : storedInterestedUsers) {
+                if (!user.getIsStale()) {
+                    userAndRatingStats.increaseNewUsers(1);
+                }
+                Rating rating = new Rating();
+                rating.setEvent(event);
+                rating.setUser(user);
+                rating = eventsDao.findOrPersist(rating);
+                if (rating.getRating() < interestedRatingModifier) {
+                    rating.setRating(interestedRatingModifier);
+                    eventsDao.merge(rating);
+                }
+            }
+            loadEventsLogger.debug(" interested ratings for event " + event + " stored successfully");
 
-    private Set<User> findOrStoreAttendingUsers(FacebookEvent facebookEvent, ObjectMapper objectMapper, Event event) throws IOException {
-        String url;
-        loadEventsLogger.debug(" retreiving attending users for event:" + facebookEvent.id);
-        url = getAttendingUsersUrl(facebookEvent.id);
-        Set<User> attendingUsers = getUsers(objectMapper, url);
-        Set<User> storedAttendedUsers = new HashSet<>();
-        for (User user : attendingUsers) {
-            User storedUser = usersDao.findOrPersist(user);
-            storedAttendedUsers.add(storedUser);
+            for (User user : storedAttendendingUsers) {
+                if (!user.getIsStale()) {
+                    userAndRatingStats.increaseNewUsers(1);
+                }
+                Rating rating = new Rating();
+                rating.setEvent(event);
+                rating.setUser(user);
+                rating = eventsDao.findOrPersist(rating);
+                if (rating.getRating() < attendingRatingModifier) {
+                    rating.setRating(attendingRatingModifier);
+                    eventsDao.merge(rating);
+                }
+            }
+            loadEventsLogger.debug(" attending ratings for event " + event + " stored successfully");
+            try {
+                // maybe dangerous because of blockage of the service (login may be blocked)
+                Thread.sleep(delayBetweenGraphAPICallsInMs);
+            } catch (InterruptedException ex) {
+                java.util.logging.Logger.getLogger(LoadEventsService.class.getName()).log(Level.SEVERE, null, ex);
+            }
         }
-        return storedAttendedUsers;
+        loadEventsLogger.debug("&&&&&&&&& &&&&&&&&& &&&&&&&&&  LOAD USERS AND RATINGS INVOCATION STATISTICS &&&&&&&&& &&&&&&&&& &&&&&&&&& ");
+        loadEventsLogger.debug("New users: " + userAndRatingStats.getNewUsers());
     }
 
-    private Set<User> findOrStoreInterestedUsers(FacebookEvent facebookEvent, ObjectMapper objectMapper, Event event) throws IOException {
-        String url;
-        // load interested users
-        loadEventsLogger.debug(" retreiving interested users for event:" + facebookEvent.id);
-        url = getInterestedUsersUrl(facebookEvent.id);
-        Set<User> interestedUsers = getUsers(objectMapper, url);
-        Set<User> storedInterestedUsers = new HashSet<>();
-        for (User user : interestedUsers) {
-            User storedUser = usersDao.findOrPersist(user);
-            storedInterestedUsers.add(storedUser);
+    private Set<User> findOrStoreAttendingUsers(Long eventId) {
+        try {
+            String url;
+            loadEventsLogger.debug(" retreiving attending users for event:" + eventId);
+            url = getAttendingUsersUrl(eventId);
+            Set<User> attendingUsers = getUsers(this.objectMapper, url);
+            Set<User> storedAttendedUsers = new HashSet<>();
+            for (User user : attendingUsers) {
+                User storedUser = usersDao.findOrPersist(user);
+                storedAttendedUsers.add(storedUser);
+            }
+            return storedAttendedUsers;
+
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(LoadEventsService.class
+                    .getName()).log(Level.SEVERE, null, ex);
         }
-        return storedInterestedUsers;
+        return null;
+    }
+
+    private Set<User> findOrStoreInterestedUsers(Long eventId) {
+        try {
+            String url;
+            // load interested users
+            loadEventsLogger.debug(" retreiving interested users for event:" + eventId);
+            url = getInterestedUsersUrl(eventId);
+            Set<User> interestedUsers = getUsers(this.objectMapper, url);
+            Set<User> storedInterestedUsers = new HashSet<>();
+            for (User user : interestedUsers) {
+                User storedUser = usersDao.findOrPersist(user);
+                storedInterestedUsers.add(storedUser);
+            }
+            return storedInterestedUsers;
+
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(LoadEventsService.class
+                    .getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
 
     private Event findOrStoreEvent(FacebookEvent facebookEvent, Place place) {
@@ -287,8 +321,8 @@ public class LoadEventsService {
             logger.debug("load users from url :" + url);
 
             JSONObject object = JsonReader.readJsonFromUrl(url);
-            stats.increaseGraphApiCalls(1);
-            EventUsersResult facbookUsers = objectMapper.readValue(object.toString(), EventUsersResult.class);
+            EventUsersResult facbookUsers = objectMapper.readValue(object.toString(), EventUsersResult.class
+            );
 
             for (FacebookUser facebookUser : facbookUsers.data) {
                 if (logger.isDebugEnabled()) {
