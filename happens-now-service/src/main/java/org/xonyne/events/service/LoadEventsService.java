@@ -44,6 +44,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.logging.Level;
+import org.xonyne.events.model.City;
 import org.xonyne.events.model.Rating;
 
 @Service
@@ -57,18 +58,22 @@ public class LoadEventsService {
     private String facebookEventsByLocationUrl;
     @Value("${loadEventsService.facebookGraphApiUrl}")
     private String facebookGraphApiUrl;
-    @Value("${loadEventsService.latitude}")
-    private Double latitude;
-    @Value("${loadEventsService.longitude}")
-    private Double longitude;
+    @Value("${loadEventsService.cityNames}")
+    private String cityNames;
+    @Value("${loadEventsService.cityLatitudes}")
+    private String cityLatitudes;
+    @Value("${loadEventsService.cityLongitudes}")
+    private String cityLongitudes;
     @Value("${loadEventsService.distance}")
     private Integer distance;
     @Value("${loadEventsService.facebookApiAccessToken}")
     private String facebookApiAccessToken;
     @Value("${loadEventsService.tonightStartHour}")
     private Integer tonightStartHour;
-    @Value("${loadEventsService.city}")
-    private String city;
+    @Value("${loadEventsService.defaultCountry}")
+    private String defaultCountry;
+    @Value("${loadEventsService.defaultStreet}")
+    private String defaultStreet;
     @Value("${loadEventsService.fetchTimePeriodInDays}")
     private Integer fetchTimePeriodInDays;
     @Value("${loadEventsService.delayBetweenGraphAPICallsInMs}")
@@ -97,28 +102,33 @@ public class LoadEventsService {
     public void init() {
         logger.info("init");
         startDate = LocalDateTime.of(LocalDate.now(), LocalTime.of(0, 0));
-        endDate = LocalDateTime.of(LocalDate.now(), LocalTime.of(23, 59));
+        endDate = LocalDateTime.of(LocalDate.now().plusDays(Long.valueOf(fetchTimePeriodInDays)), LocalTime.of(23, 59));
         objectMapper = new ObjectMapper();
     }
 
     // --> load events every night 01:00 AM
     //@Scheduled(cron = "0 0 1 * * ?")
-    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
+    @Scheduled(fixedDelay = 3600000, initialDelay = 1000)
     public void loadEvents() {
-        loadEventsLogger.debug("============== ============== ==============  LOAD EVENTS METHOD CALLED ============== ============== ============== ");
+        loadEventsLogger.debug("%%%%% %%%%% %%%%%  LOAD EVENTS METHOD CALLED %%%%% %%%%% %%%%%");
         JSONObject jsonData;
         FacebookEventResults facebookEvents;
-        Integer dayShift = 0;
+        
+        String[] cities = this.cityNames.split(",",0);
+        String[] latitudes = this.cityLatitudes.split(",",0); 
+        String[] longitudes = this.cityLongitudes.split(",",0); 
+        List<City> cityList = new ArrayList<>();
+        for (int i = 0; i< cities.length;i++) {
+            cityList.add(new City(cities[i].trim(),latitudes[i].trim(),longitudes[i].trim()));
+        }
 
         ServiceStatistics eventStats = new ServiceStatistics();
-        for (int i = 1; i <= fetchTimePeriodInDays; i++) {
-            startDate = startDate.plusDays(1);
-            endDate = endDate.plusDays(1);
-            dayShift++;
+        for (City currentCity: cityList) {
+            loadEventsLogger.info("***** ***** ***** START READ EVENTS FROM " + currentCity.getName() + " ***** ***** *****");
             try {
                 loadEventsLogger.debug("starting to load events");
 
-                String url = getEventsUrl();
+                String url = getEventsUrl(currentCity.getLatitude(),currentCity.getLongitude());
 
                 if (loadEventsLogger.isDebugEnabled()) {
                     loadEventsLogger.debug("url:" + url);
@@ -138,22 +148,12 @@ public class LoadEventsService {
                     loadEventsLogger.debug("facebook events parsed");
                 }
 
-                loadEventsLogger.debug("***** ***** ***** START READ FACEBOOK EVENTS ***** ***** *****");
-                loadEventsLogger.debug("Day shift: " + dayShift);
-                loadEventsLogger.debug("Start date: " + startDate);
-                loadEventsLogger.debug("End date: " + endDate);
-                loadEventsLogger.debug("Latitude: " + latitude);
-                loadEventsLogger.debug("Longitude: " + longitude);
-                loadEventsLogger.debug("Distance: " + distance);
-                loadEventsLogger.debug("Access token: " + facebookApiAccessToken);
-                loadEventsLogger.debug("Events retreived: " + facebookEvents.events.length);
-                loadEventsLogger.debug("Google Maps coordinates URL: https://www.google.ch/maps/@" + String.valueOf(latitude + "," + String.valueOf(longitude)));
-                loadEventsLogger.debug("***** ***** ***** END READ FACEBOOK EVENTS ***** ***** *****");
-
+                loadEventsLogger.info("Events retreived: " + facebookEvents.events.length);
+                
                 for (FacebookEvent facebookEvent : facebookEvents.events) {
                     try {
                         loadEventsLogger.debug("storing information of event id:" + facebookEvent.id);
-                        Place place = findOrStorePlace(facebookEvent);
+                        Place place = findOrStorePlace(currentCity.getName(), facebookEvent);
                         if (!place.getIsStale()) {
                             eventStats.increaseNewPlaces(1);
                         }
@@ -180,12 +180,11 @@ public class LoadEventsService {
                     java.util.logging.Logger.getLogger(LoadEventsService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            loadEventsLogger.info("***** ***** ***** END READ EVENTS FROM " + currentCity.getName() + " ***** ***** *****");
         }
-        loadEventsLogger.debug("%%%%% %%%%% %%%%% LOAD EVENTS SERVICE INVOCATION STATISTICS %%%%% %%%%% %%%%%");
-        loadEventsLogger.debug("Days fetched: " + fetchTimePeriodInDays);
-        loadEventsLogger.debug("Total events: " + eventStats.getTotalEvents());
-        loadEventsLogger.debug("New events: " + eventStats.getNewEvents());
-        loadEventsLogger.debug("Events already in DB: " + (eventStats.getTotalEvents() - eventStats.getNewEvents()));
+        loadEventsLogger.info("%%%%% %%%%% %%%%% LOAD EVENTS SERVICE INVOCATION STATISTICS %%%%% %%%%% %%%%%");
+        loadEventsLogger.info("Total events: " + eventStats.getTotalEvents());
+        loadEventsLogger.info("Unique events: " + eventStats.getNewEvents());    
     }
 
     // --> load users and ratings every night 05:00 AM
@@ -240,7 +239,7 @@ public class LoadEventsService {
             }
         }
         loadEventsLogger.debug("&&&&&&&&& &&&&&&&&& &&&&&&&&&  LOAD USERS AND RATINGS INVOCATION STATISTICS &&&&&&&&& &&&&&&&&& &&&&&&&&& ");
-        loadEventsLogger.debug("New users: " + userAndRatingStats.getNewUsers());
+        loadEventsLogger.debug("Unique users: " + userAndRatingStats.getNewUsers());
     }
 
     private Set<User> findOrStoreAttendingUsers(Long eventId) {
@@ -293,15 +292,24 @@ public class LoadEventsService {
         return event;
     }
 
-    private Place findOrStorePlace(FacebookEvent facebookEvent) {
+    private Place findOrStorePlace(String currentCity, FacebookEvent facebookEvent) {
         // create place
         FacebookEventPlace facebookPlace = facebookEvent.place;
         FacebookEventLocation facebookLocation = facebookPlace.location;
 
         // some events have no city set. Prevent NullPointerException.
         if (facebookPlace.location.city == null) {
-            facebookPlace.location.city = this.city;
+            facebookPlace.location.city = currentCity;
         }
+        // some events have no country set. Prevent NullPointerException.
+        if (facebookPlace.location.country == null) {
+            facebookPlace.location.country = this.defaultCountry;
+        }
+        // some events have no street set. Prevent NullPointerException.
+        if (facebookPlace.location.street == null) {
+            facebookPlace.location.street = this.defaultStreet;
+        }
+        
         Place place = new Place(facebookPlace.id, facebookPlace.name,
                 new Location(null, facebookLocation.city, facebookLocation.country,
                         facebookLocation.street, facebookLocation.zip, facebookLocation.latitude,
@@ -340,7 +348,7 @@ public class LoadEventsService {
         return result;
     }
 
-    public String getEventsUrl() {
+    public String getEventsUrl(String latitude, String longitude) {
         StringBuilder url = new StringBuilder(facebookEventsByLocationUrl);
         url
                 .append("?lat=").append(latitude)

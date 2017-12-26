@@ -4,8 +4,8 @@ Installation Procedure:
 
 - Install Postgresql DB 9.5.4
 
-- Run the DB script DBScript.sql using the following command :
-  /opt/PostgresPlus/9.5AS/bin/psql -w -U postgres -f "/PATH/TO/DBScript.sql" -p 5432
+- Run the DB script using the following command :
+/Library/PostgreSQL/9.5/bin/psql -w -U postgres --password -f /Users/kevin/git/happens-now/ReloadDB.sql -p 5432
 
 - Downlod WildFly 10.1.0.Final from http://wildfly.org/downloads/
 
@@ -66,3 +66,7 @@ Installation Procedure:
 - If you want to use SSL with the login page, remove the comments around the block 'SSL Configuration' in 
   the file happens-now/happens-now-front/WebContent/WEB-INF/web.xml. After obtaining your SSL Certificate follow the 
   instructions in this website http://ni3jboss.blogspot.qa/2016/06/how-to-configure-ssl-in-wildfly-10.html. 
+
+- Start tobilg webservice before starting the program
+cd fb-event-test/
+cd facebook-events-by-location && npm i && npm start
