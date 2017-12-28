@@ -5,7 +5,11 @@
       xmlns:f="http://java.sun.com/jsf/core"
       xmlns:p="http://primefaces.org/ui">
     <h:head></h:head>
+
     <h:body>	
+        <h:form>
+            <p:messages id="messages" showDetail="true" closable="true" />
+        </h:form>
         <f:view locale="#{userConfiguration.locale}" encoding="UTF-8" contentType="text/html"/>
         <div style="width:800px;font-family:aria;font-size:16px" >
             <div>
@@ -56,24 +60,34 @@
                             value="#{label['events.search.find']}" style="width:80px;"
                             actionListener="#{findEventsView.getSelectedDateEvents()}"
                             update="eventsTable" ajax="true" />
-                    </h:form> 
+                    </h:form>
                 </p:panel>
 
             </div>
             <div style="width:380px;float: right">
-                <p:panel id="what" header="#{label['events.search.what']}" style="margin-bottom:20px;text-align:right;" >
-                    <p:selectOneMenu id="category" value="#{findEventsView.selectedCategory}" style="width:150px" disabled="true">
-                        <f:selectItem itemLabel="Select Category" itemValue="" noSelectionOption="true" />
-                        <f:selectItems value="#{findEventsView.categories}" />
-                    </p:selectOneMenu>        
-                </p:panel>
+                <h:form>
+                    <p:panel id="what" header="#{label['events.search.what']}" style="margin-bottom:20px;text-align:right;" >
+                        <p:selectOneMenu id="category" value="#{findEventsView.selectedCategory}" style="width:150px" disabled="true">
+                            <f:selectItem itemLabel="Select Category" itemValue="" noSelectionOption="true" />
+                            <f:selectItems value="#{findEventsView.categories}" />
+                        </p:selectOneMenu>        
+                    </p:panel>
 
-                <p:panel id="whom" header="#{label['events.search.whom']}" style="min-height: 100px;margin-bottom:20px;text-align:right;">
+                <!--<p:panel id="whom" header="#{label['events.search.whom']}" style="min-height: 100px;margin-bottom:20px;text-align:right;">
                     <p:selectOneRadio id="companion" value="#{findEventsView.companion}" style="float: right" disabled="true" >
                         <f:selectItem itemLabel="#{label['general.yes']}" itemValue="1" />
                         <f:selectItem itemLabel="#{label['general.no']}" itemValue="0" />
                     </p:selectOneRadio>     
-                </p:panel>
+                </p:panel>-->
+                    <p:panel id="where" header="#{label['events.search.where']}" style="min-height: 100px;margin-bottom:20px;text-align:right;">
+                        <p:selectOneMenu id="cities" value="#{findEventsView.selectedCity}" style="width:150px" disabled="false">
+                            <p:ajax event="change" update="@this" />
+                            <f:selectItem itemLabel="#{label['events.search.everywhere']}" itemValue="" noSelectionOption="false" />
+                            <f:selectItems value="#{findEventsView.cities}" var="city" itemValue="#{city}" />
+                        </p:selectOneMenu>   
+                    </p:panel>
+                </h:form>
+
 
             </div>
         </div>

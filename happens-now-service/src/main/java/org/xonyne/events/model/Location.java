@@ -1,4 +1,4 @@
-package org.xonyne.events.model;
+    package org.xonyne.events.model;
 
 import java.lang.Long;
 import java.lang.String;

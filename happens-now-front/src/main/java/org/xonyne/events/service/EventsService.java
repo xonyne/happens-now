@@ -22,74 +22,88 @@ import org.xonyne.events.dto.UserDto;
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
 public class EventsService {
-	
-	@Value("${loadEventsService.backendSeviceUrl}")
-	private String backendSeviceUrl;
 
-	public UserDto login(String username, String password) {
+    @Value("${loadEventsService.backendServiceUrl}")
+    private String backendServiceUrl;
+
+    public UserDto login(String username, String password) {
         RestTemplate restTemplate = new RestTemplate();
         Map<String, String> parameters = new HashMap<String, String>();
         parameters.put("username", username);
         parameters.put("password", password);
-        
-        UserDto user = restTemplate.getForObject(backendSeviceUrl+"/events/authenticate?username={username}&password={password}", UserDto.class, parameters);
-        
+
+        UserDto user = restTemplate.getForObject(backendServiceUrl + "/events/authenticate?username={username}&password={password}", UserDto.class, parameters);
+
         FacesContext facesContext = FacesContext.getCurrentInstance();
-        HttpSession session = (HttpSession)facesContext.getExternalContext().getSession(true);
+        HttpSession session = (HttpSession) facesContext.getExternalContext().getSession(true);
         session.setAttribute("user", user);
-        
+
         return user;
-	}
-	
-	public List<EventDto> todayEvents() {
-        RestTemplate restTemplate = new RestTemplate();
-        List<EventDto> events = restTemplate.getForObject(backendSeviceUrl+"/events/today", List.class);
-        
-        return events;
-	}
+    }
 
-	public List<EventDto> tonightEvents() {
+    public List<EventDto> todayEvents() {
         RestTemplate restTemplate = new RestTemplate();
-        List<EventDto> events = restTemplate.getForObject(backendSeviceUrl+"/events/tonight", List.class);
-        
-        return events;
-	}
+        List<EventDto> events = restTemplate.getForObject(backendServiceUrl + "/events/today", List.class);
 
-	public List<EventDto> weekendEvents() {
+        return events;
+    }
+
+    public List<EventDto> tonightEvents() {
         RestTemplate restTemplate = new RestTemplate();
-        List<EventDto> events = restTemplate.getForObject(backendSeviceUrl+"/events/weekend", List.class);
-        
-        return events;
-	}
+        List<EventDto> events = restTemplate.getForObject(backendServiceUrl + "/events/tonight", List.class);
 
-	public List<EventDto> getSelectedDateEvents(Date selectedDate) {
-		SimpleDateFormat dateFormate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
-		
+        return events;
+    }
+
+    public List<EventDto> weekendEvents() {
+        RestTemplate restTemplate = new RestTemplate();
+        List<EventDto> events = restTemplate.getForObject(backendServiceUrl + "/events/weekend", List.class);
+
+        return events;
+    }
+
+    public List<EventDto> getSelectedDateEvents(Date selectedDate) {
+        SimpleDateFormat dateFormate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+
         RestTemplate restTemplate = new RestTemplate();
         Calendar startTime = Calendar.getInstance();
         startTime.setTime(selectedDate);
         startTime.set(Calendar.HOUR_OF_DAY, 0);
         startTime.set(Calendar.MINUTE, 0);
         startTime.set(Calendar.SECOND, 0);
-        		
+
         Calendar endTime = Calendar.getInstance();
         endTime.setTime(selectedDate);
         endTime.set(Calendar.HOUR_OF_DAY, 23);
         endTime.set(Calendar.MINUTE, 59);
         endTime.set(Calendar.SECOND, 59);
-        
-        Map<String, String> parameters = new HashMap<String, String>();
+
+        Map<String, String> parameters = new HashMap<>();
         parameters.put("from", dateFormate.format(startTime.getTime()));
         parameters.put("to", dateFormate.format(endTime.getTime()));
-        List<EventDto> events = restTemplate.getForObject(backendSeviceUrl+"/events/find?from={from}&to={to}", List.class, parameters);
-        
-        return events;
-	}
+        List<EventDto> events = restTemplate.getForObject(backendServiceUrl + "/events/find?from={from}&to={to}", List.class, parameters);
 
-	public List<EventDto> nextWeekendEvents() {
-        RestTemplate restTemplate = new RestTemplate();
-        List<EventDto> events = restTemplate.getForObject(backendSeviceUrl+"/events/nextWeekend", List.class);
-        
         return events;
-	}
+    }
+
+    public List<EventDto> nextWeekendEvents() {
+        RestTemplate restTemplate = new RestTemplate();
+        List<EventDto> events = restTemplate.getForObject(backendServiceUrl + "/events/nextWeekend", List.class);
+
+        return events;
+    }
+
+    public List<String> cityNames() {
+        RestTemplate restTemplate = new RestTemplate();
+        List<String> cities = restTemplate.getForObject(backendServiceUrl + "/events/cityNames", List.class);
+
+        return cities;
+    }
+    
+    public void setCity(String city) {
+        RestTemplate restTemplate = new RestTemplate();
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("city", city);
+        restTemplate.getForObject(backendServiceUrl + "/events/setCity?city={city}", List.class, parameters);
+    }
 }

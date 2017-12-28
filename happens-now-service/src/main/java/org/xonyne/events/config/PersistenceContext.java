@@ -44,7 +44,7 @@ public class PersistenceContext {
 		properties.setProperty("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
 		properties.setProperty("hibernate.show_sql", "true");
 		properties.setProperty("hibernate.event.merge.entity_copy_observer", "allow");
-        properties.setProperty("hibernate.temp.use_jdbc_metadata_defaults", "false");
+                properties.setProperty("hibernate.temp.use_jdbc_metadata_defaults", "false");
 		em.setJpaProperties(properties);
 
 		return em;

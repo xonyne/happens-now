@@ -86,6 +86,9 @@ public class LoadEventsService {
     LocalDateTime startDate;
     LocalDateTime endDate;
 
+    List<City> cityList;
+    private String selectedCity;
+
     ObjectMapper objectMapper;
 
     @Autowired
@@ -94,97 +97,121 @@ public class LoadEventsService {
     @Autowired
     private UsersDao usersDao;
 
+    private final double LAT_100_METRES = 0.00089d;
+    private final double LNG_100_METRES = 0.001275d;
+
     public LoadEventsService() {
-        logger.info("created successfully");
+        logger.info("LoadEventsService created successfully");
     }
 
     @PostConstruct
     public void init() {
-        logger.info("init");
+        logger.info("LoadEventsService initialized");
         startDate = LocalDateTime.of(LocalDate.now(), LocalTime.of(0, 0));
         endDate = LocalDateTime.of(LocalDate.now().plusDays(Long.valueOf(fetchTimePeriodInDays)), LocalTime.of(23, 59));
         objectMapper = new ObjectMapper();
+        loadCities();
+        this.selectedCity="";
+    }
+
+    private void loadCities() {
+        String[] cities = this.cityNames.split(",", 0);
+        String[] latitudes = this.cityLatitudes.split(",", 0);
+        String[] longitudes = this.cityLongitudes.split(",", 0);
+        this.cityList = new ArrayList<>();
+        for (int i = 0; i < cities.length; i++) {
+            this.cityList.add(new City(cities[i].trim(), latitudes[i].trim(), longitudes[i].trim()));
+        }
+    }
+
+    public List<String> getCityNames() {
+        List<String> cities = new ArrayList<>();
+        this.cityList.forEach((c) -> {
+            cities.add(c.getName());
+        });
+        return cities;
     }
 
     // --> load events every night 01:00 AM
     //@Scheduled(cron = "0 0 1 * * ?")
-    @Scheduled(fixedDelay = 3600000, initialDelay = 1000)
+    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
     public void loadEvents() {
         loadEventsLogger.debug("%%%%% %%%%% %%%%%  LOAD EVENTS METHOD CALLED %%%%% %%%%% %%%%%");
         JSONObject jsonData;
         FacebookEventResults facebookEvents;
-        
-        String[] cities = this.cityNames.split(",",0);
-        String[] latitudes = this.cityLatitudes.split(",",0); 
-        String[] longitudes = this.cityLongitudes.split(",",0); 
-        List<City> cityList = new ArrayList<>();
-        for (int i = 0; i< cities.length;i++) {
-            cityList.add(new City(cities[i].trim(),latitudes[i].trim(),longitudes[i].trim()));
-        }
 
-        ServiceStatistics eventStats = new ServiceStatistics();
-        for (City currentCity: cityList) {
+        LoadEventsServiceStatistics eventStats = new LoadEventsServiceStatistics();
+        for (City currentCity : this.cityList) {
+
             loadEventsLogger.info("***** ***** ***** START READ EVENTS FROM " + currentCity.getName() + " ***** ***** *****");
-            try {
-                loadEventsLogger.debug("starting to load events");
-
-                String url = getEventsUrl(currentCity.getLatitude(),currentCity.getLongitude());
-
-                if (loadEventsLogger.isDebugEnabled()) {
-                    loadEventsLogger.debug("url:" + url);
-                }
-
-                jsonData = JsonReader.readJsonFromUrl(url);
-                eventStats.increaseGraphApiCalls(1);
-
-                if (loadEventsLogger.isDebugEnabled()) {
-                    loadEventsLogger.debug("json data retreived from facebook ");
-                }
-
-                facebookEvents = objectMapper.readValue(jsonData.toString(), FacebookEventResults.class);
-                eventStats.increaseTotalEvents(facebookEvents.events.length);
-
-                if (loadEventsLogger.isDebugEnabled()) {
-                    loadEventsLogger.debug("facebook events parsed");
-                }
-
-                loadEventsLogger.info("Events retreived: " + facebookEvents.events.length);
-                
-                for (FacebookEvent facebookEvent : facebookEvents.events) {
+            for (int lng = -25; lng < 25; lng++) {
+                double currentLongitude = Double.valueOf(currentCity.getLongitude()) + (lng * LNG_100_METRES);
+                for (int lat = -25; lat < 25; lat++) {
+                    double currentLatitude = Double.valueOf(currentCity.getLatitude()) + (lat * LAT_100_METRES);
                     try {
-                        loadEventsLogger.debug("storing information of event id:" + facebookEvent.id);
-                        Place place = findOrStorePlace(currentCity.getName(), facebookEvent);
-                        if (!place.getIsStale()) {
-                            eventStats.increaseNewPlaces(1);
-                        }
-                        Event event = findOrStoreEvent(facebookEvent, place);
-                        if (!event.getIsStale()) {
-                            eventStats.increaseNewEvents(1);
+                        loadEventsLogger.debug("starting to load events");
+
+                        String url = getEventsUrl(String.valueOf(currentLatitude), String.valueOf(currentLongitude));
+
+                        if (loadEventsLogger.isDebugEnabled()) {
+                            loadEventsLogger.debug("url:" + url);
                         }
 
-                        eventsDao.merge(event);
-                        loadEventsLogger.debug(" event " + event + " stored successfully");
+                        jsonData = JsonReader.readJsonFromUrl(url);
+                        eventStats.increaseGraphApiCalls(1);
 
-                    } catch (Exception e) {
-                        logger.error("error in storing information of event id:" + facebookEvent.id + "," + e.getMessage(), e);
+                        if (loadEventsLogger.isDebugEnabled()) {
+                            loadEventsLogger.debug("json data retreived from facebook ");
+                        }
+
+                        facebookEvents = objectMapper.readValue(jsonData.toString(), FacebookEventResults.class);
+                        eventStats.increaseTotalEvents(facebookEvents.events.length);
+
+                        if (loadEventsLogger.isDebugEnabled()) {
+                            loadEventsLogger.debug("facebook events parsed");
+                        }
+
+                        loadEventsLogger.info("Latitude: " + currentLatitude);
+                        loadEventsLogger.info("Longitude: " + currentLongitude);
+                        loadEventsLogger.info("Events retreived: " + facebookEvents.events.length);
+
+                        for (FacebookEvent facebookEvent : facebookEvents.events) {
+                            try {
+                                loadEventsLogger.debug("storing information of event id:" + facebookEvent.id);
+                                Place place = findOrStorePlace(currentCity.getName(), facebookEvent);
+                                if (!place.getIsStale()) {
+                                    eventStats.increaseNewPlaces(1);
+                                }
+                                Event event = findOrStoreEvent(facebookEvent, place);
+                                if (!event.getIsStale()) {
+                                    eventStats.increaseNewEvents(1);
+                                }
+
+                                eventsDao.merge(event);
+                                loadEventsLogger.debug(" event " + event + " stored successfully");
+
+                            } catch (Exception e) {
+                                logger.error("error in storing information of event id:" + facebookEvent.id + "," + e.getMessage(), e);
+                            }
+
+                        }
+                    } catch (Exception ex) {
+                        logger.error("error in load events," + ex.getMessage(), ex);
+                    } finally {
+                        try {
+                            // maybe dangerous because of blockage of the service (login may be blocked)
+                            Thread.sleep(delayBetweenGraphAPICallsInMs);
+                        } catch (InterruptedException ex) {
+                            java.util.logging.Logger.getLogger(LoadEventsService.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     }
-
-                }
-            } catch (Exception ex) {
-                logger.error("error in load events," + ex.getMessage(), ex);
-            } finally {
-                try {
-                    // maybe dangerous because of blockage of the service (login may be blocked)
-                    Thread.sleep(delayBetweenGraphAPICallsInMs);
-                } catch (InterruptedException ex) {
-                    java.util.logging.Logger.getLogger(LoadEventsService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
             loadEventsLogger.info("***** ***** ***** END READ EVENTS FROM " + currentCity.getName() + " ***** ***** *****");
         }
         loadEventsLogger.info("%%%%% %%%%% %%%%% LOAD EVENTS SERVICE INVOCATION STATISTICS %%%%% %%%%% %%%%%");
         loadEventsLogger.info("Total events: " + eventStats.getTotalEvents());
-        loadEventsLogger.info("Unique events: " + eventStats.getNewEvents());    
+        loadEventsLogger.info("Unique events: " + eventStats.getNewEvents());
     }
 
     // --> load users and ratings every night 05:00 AM
@@ -192,8 +219,8 @@ public class LoadEventsService {
     //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
     public void loadUsersAndRatings() {
         loadEventsLogger.debug("&&&&&&&&& &&&&&&&&& &&&&&&&&&  LOAD USERS AND RATINGS METHOD CALLED &&&&&&&&& &&&&&&&&& &&&&&&&&& ");
-        ServiceStatistics userAndRatingStats = new ServiceStatistics();
-        
+        LoadEventsServiceStatistics userAndRatingStats = new LoadEventsServiceStatistics();
+
         List<Event> allEvents = eventsDao.findAll();
         for (Event event : allEvents) {
             Set<User> storedInterestedUsers = findOrStoreInterestedUsers(event.getId());
@@ -201,7 +228,7 @@ public class LoadEventsService {
             event.setAttendingUsers(storedAttendendingUsers);
             event.setInterestedUsers(storedInterestedUsers);
             loadEventsLogger.debug(" add attending and interested users to event " + event);
-      
+
             for (User user : storedInterestedUsers) {
                 if (!user.getIsStale()) {
                     userAndRatingStats.increaseNewUsers(1);
@@ -309,7 +336,7 @@ public class LoadEventsService {
         if (facebookPlace.location.street == null) {
             facebookPlace.location.street = this.defaultStreet;
         }
-        
+
         Place place = new Place(facebookPlace.id, facebookPlace.name,
                 new Location(null, facebookLocation.city, facebookLocation.country,
                         facebookLocation.street, facebookLocation.zip, facebookLocation.latitude,
@@ -387,7 +414,13 @@ public class LoadEventsService {
         end.set(Calendar.MINUTE, 59);
         end.set(Calendar.SECOND, 59);
 
-        List<EventDto> result = findEvents(start.getTime(), end.getTime());
+        List<EventDto> result;
+        if (this.selectedCity.isEmpty()) {
+            result = findEvents(start.getTime(), end.getTime());
+        } else {
+            result = findEventsInCity(start.getTime(), end.getTime(), this.selectedCity);
+        }
+ 
 
         return result;
     }
@@ -402,8 +435,13 @@ public class LoadEventsService {
         end.set(Calendar.HOUR_OF_DAY, 23);
         end.set(Calendar.MINUTE, 59);
         end.set(Calendar.SECOND, 59);
-
-        List<EventDto> result = findEvents(start.getTime(), end.getTime());
+        
+        List<EventDto> result;
+        if (this.selectedCity.isEmpty()) {
+            result = findEvents(start.getTime(), end.getTime());
+        } else {
+            result = findEventsInCity(start.getTime(), end.getTime(), this.selectedCity);
+        }
 
         return result;
     }
@@ -411,6 +449,7 @@ public class LoadEventsService {
     /**
      * Weekend start : Saturday in current week Weekend end : Sunday in next
      * week
+     * @return 
      */
     public List<EventDto> getWeekendEvents() {
         Calendar start = (Calendar) Calendar.getInstance().clone();
@@ -430,9 +469,14 @@ public class LoadEventsService {
         if (logger.isDebugEnabled()) {
             logger.debug(" start/end dates of next weekend:" + start.getTime() + "," + end.getTime());
         }
-
-        List<EventDto> result = findEvents(start.getTime(), end.getTime());
-
+        
+        List<EventDto> result;
+        if (this.selectedCity.isEmpty()) {
+            result = findEvents(start.getTime(), end.getTime());
+        } else {
+            result = findEventsInCity(start.getTime(), end.getTime(), this.selectedCity);
+        }
+ 
         return result;
     }
 
@@ -455,7 +499,13 @@ public class LoadEventsService {
             logger.debug(" start/end dates of next weekend:" + start.getTime() + "," + end.getTime());
         }
 
-        List<EventDto> result = findEvents(start.getTime(), end.getTime());
+        List<EventDto> result;
+        if (this.selectedCity.isEmpty()) {
+            result = findEvents(start.getTime(), end.getTime());
+        } else {
+            result = findEventsInCity(start.getTime(), end.getTime(), this.selectedCity);
+        }
+ 
 
         return result;
     }
@@ -465,14 +515,32 @@ public class LoadEventsService {
             logger.debug(" get events between :" + start.getTime() + "," + end.getTime());
         }
 
-        List<EventDto> result = findEvents(start, end);
+        List<EventDto> result;
+        if (this.selectedCity.isEmpty()) {
+            result = findEvents(start, end);
+        } else {
+            result = findEventsInCity(start, end, this.selectedCity);
+        }
+
+        return result;
+    }
+
+    private List<EventDto> findEventsInCity(Date start, Date end, String city) {
+        List<Event> events = eventsDao.findEventsInCity(start, end, city);
+        List<EventDto> result = new ArrayList<>(events.size());
+
+        for (Event event : events) {
+            result.add(new EventDto(event.getId(), event.getTitle(), event.getStartDateTime(), event.getEndDateTime()));
+        }
+
+        logger.debug(" retreived result count:" + result.size());
 
         return result;
     }
 
     private List<EventDto> findEvents(Date start, Date end) {
         List<Event> events = eventsDao.findEvents(start, end);
-        List<EventDto> result = new ArrayList<EventDto>(events.size());
+        List<EventDto> result = new ArrayList<>(events.size());
 
         for (Event event : events) {
             result.add(new EventDto(event.getId(), event.getTitle(), event.getStartDateTime(), event.getEndDateTime()));
@@ -498,5 +566,13 @@ public class LoadEventsService {
         }
 
         return userDto;
+    }
+
+    public String getSelectedCity() {
+        return selectedCity;
+    }
+
+    public void setSelectedCity(String selectedCity) {
+        this.selectedCity = selectedCity;
     }
 }

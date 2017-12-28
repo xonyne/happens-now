@@ -9,7 +9,7 @@ package org.xonyne.events.service;
  *
  * @author kevin
  */
-public class ServiceStatistics {
+public class LoadEventsServiceStatistics {
 
     private int totalEvents;
     private int newEvents;
@@ -17,7 +17,7 @@ public class ServiceStatistics {
     private int newUsers;
     private int graphApiCalls;
     
-    public ServiceStatistics(){
+    public LoadEventsServiceStatistics(){
         this.totalEvents = 0;
         this.newEvents = 0;
         this.newPlaces = 0;
@@ -25,7 +25,7 @@ public class ServiceStatistics {
         this.graphApiCalls = 0;
     }
 
-    public ServiceStatistics(int totalEvents, int newEvents, int newPlaces, int newUsers, int graphApiCalls) {
+    public LoadEventsServiceStatistics(int totalEvents, int newEvents, int newPlaces, int newUsers, int graphApiCalls) {
         this.totalEvents = totalEvents;
         this.newEvents = newEvents;
         this.newPlaces = newPlaces;

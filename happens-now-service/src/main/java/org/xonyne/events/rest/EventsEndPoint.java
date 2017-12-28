@@ -42,6 +42,14 @@ public class EventsEndPoint {
 		logger.debug("start getTodayEvents");
 		return AppContext.ctx.getBean(LoadEventsService.class).getTodayEvents();
 	}
+        
+        @GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("/cityNames")
+	public List<String> getCityNames() {
+		logger.debug("start getCityNames");
+		return AppContext.ctx.getBean(LoadEventsService.class).getCityNames();
+	}
 	
 	@GET
 	@Produces(MediaType.APPLICATION_JSON)
@@ -80,6 +88,19 @@ public class EventsEndPoint {
 			return AppContext.ctx.getBean(LoadEventsService.class).getEvents(fromDate, toDate);
 		}catch(Exception ex){
 			logger.error("error in findEvents,"+ex.getMessage(), ex);
+			throw new RuntimeException(ex);
+		}
+	}
+        
+        @GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Path("/setCity")
+	public void setCity(@QueryParam("city") String city) {
+		try{
+			logger.debug("set city");
+                        AppContext.ctx.getBean(LoadEventsService.class).setSelectedCity(city);
+		}catch(Exception ex){
+			logger.error("error in setting the city,"+ex.getMessage(), ex);
 			throw new RuntimeException(ex);
 		}
 	}

@@ -1,27 +1,30 @@
 package org.xonyne.events.mbean;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.xonyne.events.config.AppContext;
 import org.xonyne.events.dto.EventDto;
-import org.xonyne.events.service.EventsService;
 
 @ManagedBean(name = "findEventsView")
 @ViewScoped
 public class FindEventsView {
 
-    private HashMap<String, String> categories = new HashMap<String, String>();
-
+    private Map<String, String> categories = new HashMap<>();
     private String selectedCategory;
+    
+    private List<String> cities;
+    private String selectedCity;
 
+    
     private Date selectedDate;
 
     public List<EventDto> events;
@@ -30,6 +33,40 @@ public class FindEventsView {
 
     public FindEventsView() {
         categories.put("Sports", "Sports");
+        this.cities = loadCities();
+        if (this.cities.isEmpty()) {
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Warning!", "Backend can not be reached!"));
+        }
+    }
+    
+    private List<String> loadCities() {
+        return AppContext.getEventsService().cityNames();
+    }
+    
+    public String getSelectedCity() {
+        return selectedCity;
+    }
+
+    public void setSelectedCity(String selectedCity) {
+        this.selectedCity = selectedCity;
+        //set the city in the backend
+        AppContext.getEventsService().setCity(selectedCity);
+    }
+
+    public boolean isCompanion() {
+        return companion;
+    }
+
+    public void setCompanion(boolean companion) {
+        this.companion = companion;
+    }
+
+    public List<String> getCities() {
+        return cities;
+    }
+
+    public void setCities(List<String> cities) {
+        this.cities = cities;
     }
 
     public void todayEvents() {
@@ -57,10 +94,10 @@ public class FindEventsView {
         this.events = AppContext.getEventsService().getSelectedDateEvents(selectedDate);
     }
 
-    public HashMap<String, String> getCategories() {
+    public Map<String, String> getCategories() {
         return categories;
     }
-
+        
     public void setCategories(HashMap<String, String> categories) {
         this.categories = categories;
     }

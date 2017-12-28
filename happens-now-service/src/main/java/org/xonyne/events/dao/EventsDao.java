@@ -20,8 +20,10 @@ public interface EventsDao {
 	void merge(Event event);
         
         void merge(Rating rating);
+        
+        List<Event> findEvents(Date from, Date to);
 
-	List<Event> findEvents(Date from, Date to);
+	List<Event> findEventsInCity(Date from, Date to, String city);
         
         List<Event> findAll();
 }
