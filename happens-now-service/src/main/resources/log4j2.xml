@@ -30,7 +30,7 @@
 	</Appenders>
 	
 	<Loggers>
-		<AsyncLogger name="LoadEventService" additivity="false"	level="DEBUG">
+		<AsyncLogger name="LoadEventService" additivity="false"	level="INFO">
 			<AppenderRef ref="loadEvents" />
 		</AsyncLogger>
 	

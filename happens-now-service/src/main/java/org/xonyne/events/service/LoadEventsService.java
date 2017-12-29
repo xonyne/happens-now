@@ -99,6 +99,7 @@ public class LoadEventsService {
 
     private final double LAT_100_METRES = 0.00089d;
     private final double LNG_100_METRES = 0.001275d;
+    private final Integer SQUARE_100M_STEPS_FROM_CENTER = 1;
 
     public LoadEventsService() {
         logger.info("LoadEventsService created successfully");
@@ -134,7 +135,7 @@ public class LoadEventsService {
 
     // --> load events every night 01:00 AM
     //@Scheduled(cron = "0 0 1 * * ?")
-    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
+    @Scheduled(fixedDelay = 3600000, initialDelay = 1000)
     public void loadEvents() {
         loadEventsLogger.debug("%%%%% %%%%% %%%%%  LOAD EVENTS METHOD CALLED %%%%% %%%%% %%%%%");
         JSONObject jsonData;
@@ -144,9 +145,10 @@ public class LoadEventsService {
         for (City currentCity : this.cityList) {
 
             loadEventsLogger.info("***** ***** ***** START READ EVENTS FROM " + currentCity.getName() + " ***** ***** *****");
-            for (int lng = -25; lng < 25; lng++) {
+            int step = 0;
+            for (int lng = -SQUARE_100M_STEPS_FROM_CENTER; lng < SQUARE_100M_STEPS_FROM_CENTER; lng++) {
                 double currentLongitude = Double.valueOf(currentCity.getLongitude()) + (lng * LNG_100_METRES);
-                for (int lat = -25; lat < 25; lat++) {
+                for (int lat = -SQUARE_100M_STEPS_FROM_CENTER; lat < SQUARE_100M_STEPS_FROM_CENTER; lat++) {
                     double currentLatitude = Double.valueOf(currentCity.getLatitude()) + (lat * LAT_100_METRES);
                     try {
                         loadEventsLogger.debug("starting to load events");
@@ -170,9 +172,9 @@ public class LoadEventsService {
                         if (loadEventsLogger.isDebugEnabled()) {
                             loadEventsLogger.debug("facebook events parsed");
                         }
-
-                        loadEventsLogger.info("Latitude: " + currentLatitude);
-                        loadEventsLogger.info("Longitude: " + currentLongitude);
+                        step++;
+                        loadEventsLogger.info("Step " + step + "/" + (SQUARE_100M_STEPS_FROM_CENTER*2*SQUARE_100M_STEPS_FROM_CENTER*2));
+                        loadEventsLogger.info("Location: https://www.google.com/maps/search/?api=1&query=" + currentLatitude + "," + currentLongitude);
                         loadEventsLogger.info("Events retreived: " + facebookEvents.events.length);
 
                         for (FacebookEvent facebookEvent : facebookEvents.events) {
@@ -327,6 +329,10 @@ public class LoadEventsService {
         // some events have no city set. Prevent NullPointerException.
         if (facebookPlace.location.city == null) {
             facebookPlace.location.city = currentCity;
+        }
+        // some events have no zip set. Prevent NullPointerException.
+        if (facebookPlace.location.zip == null) {
+            facebookPlace.location.zip = "0000" ;
         }
         // some events have no country set. Prevent NullPointerException.
         if (facebookPlace.location.country == null) {
