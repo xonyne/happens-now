@@ -36,9 +36,10 @@
         </div>
 
         <div style="width:800px">
-            <div style="float:left; width:400px">
-                <p:panel id="when" header="#{label['events.search.when']}" style="margin-bottom:20px;width:400px;text-align:left;">
-                    <h:form>
+            <h:form>
+                <div style="float:left; width:400px">
+                    <p:panel id="when" header="#{label['events.search.when']}" style="margin-bottom:20px;width:400px;text-align:left;">
+
                         <p:commandButton value="#{label['events.search.today']}" style="width:200px;"
                                          actionListener="#{findEventsView.todayEvents()}"
                                          update="eventsTable" ajax="true" />
@@ -60,12 +61,12 @@
                             value="#{label['events.search.find']}" style="width:80px;"
                             actionListener="#{findEventsView.getSelectedDateEvents()}"
                             update="eventsTable" ajax="true" />
-                    </h:form>
-                </p:panel>
 
-            </div>
-            <div style="width:380px;float: right">
-                <h:form>
+                    </p:panel>
+
+                </div>
+                <div style="width:380px;float: right">
+
                     <p:panel id="what" header="#{label['events.search.what']}" style="margin-bottom:20px;text-align:right;" >
                         <p:selectOneMenu id="category" value="#{findEventsView.selectedCategory}" style="width:150px" disabled="true">
                             <f:selectItem itemLabel="Select Category" itemValue="" noSelectionOption="true" />
@@ -73,12 +74,6 @@
                         </p:selectOneMenu>        
                     </p:panel>
 
-                <!--<p:panel id="whom" header="#{label['events.search.whom']}" style="min-height: 100px;margin-bottom:20px;text-align:right;">
-                    <p:selectOneRadio id="companion" value="#{findEventsView.companion}" style="float: right" disabled="true" >
-                        <f:selectItem itemLabel="#{label['general.yes']}" itemValue="1" />
-                        <f:selectItem itemLabel="#{label['general.no']}" itemValue="0" />
-                    </p:selectOneRadio>     
-                </p:panel>-->
                     <p:panel id="where" header="#{label['events.search.where']}" style="min-height: 100px;margin-bottom:20px;text-align:right;">
                         <p:selectOneMenu id="cities" value="#{findEventsView.selectedCity}" style="width:150px" disabled="false">
                             <p:ajax event="change" update="@this" />
@@ -86,10 +81,11 @@
                             <f:selectItems value="#{findEventsView.cities}" var="city" itemValue="#{city}" />
                         </p:selectOneMenu>   
                     </p:panel>
-                </h:form>
 
 
-            </div>
+
+                </div>
+            </h:form>
         </div>
         <div style="clear: both;"></div>
         <div style="width:800px">
@@ -115,6 +111,16 @@
                     <h:outputText value="#{event.end}">
                         <f:convertDateTime type="date" pattern="dd/MM/yyyy HH:mm" />
                     </h:outputText>
+                </p:column>
+                
+                <p:column headerText="#{label['events.search.interested']}">
+                    <p:graphicImage value="/resources/images/tick.png" rendered="#{event.userIsInterested}"/>
+                    <p:graphicImage value="/resources/images/red-cross.png"  rendered="#{not event.userIsInterested}"/>
+                </p:column>
+                
+                <p:column headerText="#{label['events.search.attending']}">
+                    <p:graphicImage value="/resources/images/tick.png" rendered="#{event.userIsAttending}"/>
+                    <p:graphicImage value="/resources/images/red-cross.png"  rendered="#{not event.userIsAttending}"/>
                 </p:column>
 
             </p:dataTable>

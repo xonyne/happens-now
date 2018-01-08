@@ -135,7 +135,7 @@ public class LoadEventsService {
 
     // --> load events every night 01:00 AM
     //@Scheduled(cron = "0 0 1 * * ?")
-    @Scheduled(fixedDelay = 3600000, initialDelay = 1000)
+    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
     public void loadEvents() {
         loadEventsLogger.debug("%%%%% %%%%% %%%%%  LOAD EVENTS METHOD CALLED %%%%% %%%%% %%%%%");
         JSONObject jsonData;
@@ -213,7 +213,7 @@ public class LoadEventsService {
         }
         loadEventsLogger.info("%%%%% %%%%% %%%%% LOAD EVENTS SERVICE INVOCATION STATISTICS %%%%% %%%%% %%%%%");
         loadEventsLogger.info("Total events: " + eventStats.getTotalEvents());
-        loadEventsLogger.info("Unique events: " + eventStats.getNewEvents());
+        loadEventsLogger.info("Unique new events: " + eventStats.getNewEvents());
     }
 
     // --> load users and ratings every night 05:00 AM
@@ -420,14 +420,7 @@ public class LoadEventsService {
         end.set(Calendar.MINUTE, 59);
         end.set(Calendar.SECOND, 59);
 
-        List<EventDto> result;
-        if (this.selectedCity.isEmpty()) {
-            result = findEvents(start.getTime(), end.getTime());
-        } else {
-            result = findEventsInCity(start.getTime(), end.getTime(), this.selectedCity);
-        }
- 
-
+        List<EventDto> result = findEvents(start.getTime(), end.getTime());
         return result;
     }
 
@@ -442,13 +435,7 @@ public class LoadEventsService {
         end.set(Calendar.MINUTE, 59);
         end.set(Calendar.SECOND, 59);
         
-        List<EventDto> result;
-        if (this.selectedCity.isEmpty()) {
-            result = findEvents(start.getTime(), end.getTime());
-        } else {
-            result = findEventsInCity(start.getTime(), end.getTime(), this.selectedCity);
-        }
-
+        List<EventDto> result = findEvents(start.getTime(), end.getTime());
         return result;
     }
 
@@ -476,13 +463,7 @@ public class LoadEventsService {
             logger.debug(" start/end dates of next weekend:" + start.getTime() + "," + end.getTime());
         }
         
-        List<EventDto> result;
-        if (this.selectedCity.isEmpty()) {
-            result = findEvents(start.getTime(), end.getTime());
-        } else {
-            result = findEventsInCity(start.getTime(), end.getTime(), this.selectedCity);
-        }
- 
+        List<EventDto> result = findEvents(start.getTime(), end.getTime());
         return result;
     }
 
@@ -505,14 +486,7 @@ public class LoadEventsService {
             logger.debug(" start/end dates of next weekend:" + start.getTime() + "," + end.getTime());
         }
 
-        List<EventDto> result;
-        if (this.selectedCity.isEmpty()) {
-            result = findEvents(start.getTime(), end.getTime());
-        } else {
-            result = findEventsInCity(start.getTime(), end.getTime(), this.selectedCity);
-        }
- 
-
+        List<EventDto> result = findEvents(start.getTime(), end.getTime());
         return result;
     }
 
@@ -520,37 +494,31 @@ public class LoadEventsService {
         if (logger.isDebugEnabled()) {
             logger.debug(" get events between :" + start.getTime() + "," + end.getTime());
         }
-
-        List<EventDto> result;
-        if (this.selectedCity.isEmpty()) {
-            result = findEvents(start, end);
-        } else {
-            result = findEventsInCity(start, end, this.selectedCity);
-        }
-
-        return result;
-    }
-
-    private List<EventDto> findEventsInCity(Date start, Date end, String city) {
-        List<Event> events = eventsDao.findEventsInCity(start, end, city);
-        List<EventDto> result = new ArrayList<>(events.size());
-
-        for (Event event : events) {
-            result.add(new EventDto(event.getId(), event.getTitle(), event.getStartDateTime(), event.getEndDateTime()));
-        }
-
-        logger.debug(" retreived result count:" + result.size());
-
+            
+        List<EventDto> result = findEvents(start, end);
         return result;
     }
 
     private List<EventDto> findEvents(Date start, Date end) {
-        List<Event> events = eventsDao.findEvents(start, end);
-        List<EventDto> result = new ArrayList<>(events.size());
-
-        for (Event event : events) {
-            result.add(new EventDto(event.getId(), event.getTitle(), event.getStartDateTime(), event.getEndDateTime()));
+        List<Event> events;
+        if (this.selectedCity == null || this.selectedCity.isEmpty()) {
+            events = eventsDao.findEvents(start, end);
+        } else {
+            events = eventsDao.findEventsInCity(start, end, this.selectedCity);
         }
+        
+        List<EventDto> result = new ArrayList<>(events.size());
+        events.forEach((event) -> {
+            Set<Long> interestedUsers = new HashSet<>();
+            event.getInterestedUsers().forEach((user) -> {
+                interestedUsers.add(user.getId());
+            });
+            Set<Long> attendingUsers = new HashSet<>();
+            event.getAttendingUsers().forEach((user) -> {
+                attendingUsers.add(user.getId());
+            });
+            result.add(new EventDto(event.getId(), event.getTitle(), event.getStartDateTime(), event.getEndDateTime(),interestedUsers, attendingUsers));
+        });
 
         logger.debug(" retreived result count:" + result.size());
 

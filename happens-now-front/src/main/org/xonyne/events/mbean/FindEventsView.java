@@ -24,12 +24,9 @@ public class FindEventsView {
     private List<String> cities;
     private String selectedCity;
 
-    
     private Date selectedDate;
 
     public List<EventDto> events;
-    
-    private boolean companion;
 
     public FindEventsView() {
         categories.put("Sports", "Sports");
@@ -51,14 +48,6 @@ public class FindEventsView {
         this.selectedCity = selectedCity;
         //set the city in the backend
         AppContext.getEventsService().setCity(selectedCity);
-    }
-
-    public boolean isCompanion() {
-        return companion;
-    }
-
-    public void setCompanion(boolean companion) {
-        this.companion = companion;
     }
 
     public List<String> getCities() {
@@ -125,13 +114,4 @@ public class FindEventsView {
     public void setEvents(List<EventDto> events) {
         this.events = events;
     }
-
-    public boolean getCompanion() {
-        return companion;
-    }
-
-    public void setCompanion(Boolean yesNo) {
-        this.companion = yesNo;
-    }
-
 }

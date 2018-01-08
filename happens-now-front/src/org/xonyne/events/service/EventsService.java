@@ -1,6 +1,8 @@
 package org.xonyne.events.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -8,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 
 import javax.faces.context.FacesContext;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -43,22 +44,29 @@ public class EventsService {
 
     public List<EventDto> todayEvents() {
         RestTemplate restTemplate = new RestTemplate();
-        List<EventDto> events = restTemplate.getForObject(backendServiceUrl + "/events/today", List.class);
-
+        List<EventDto> events = convertEvents(restTemplate.getForObject(backendServiceUrl + "/events/today", List.class));
+        determineCurrentUserRating(events);
         return events;
     }
 
     public List<EventDto> tonightEvents() {
         RestTemplate restTemplate = new RestTemplate();
-        List<EventDto> events = restTemplate.getForObject(backendServiceUrl + "/events/tonight", List.class);
-
+        List<EventDto> events = convertEvents(restTemplate.getForObject(backendServiceUrl + "/events/tonight", List.class));
+        determineCurrentUserRating(events);
         return events;
     }
 
     public List<EventDto> weekendEvents() {
         RestTemplate restTemplate = new RestTemplate();
-        List<EventDto> events = restTemplate.getForObject(backendServiceUrl + "/events/weekend", List.class);
+        List<EventDto> events = convertEvents(restTemplate.getForObject(backendServiceUrl + "/events/weekend", List.class));
+        determineCurrentUserRating(events);
+        return events;
+    }
 
+    public List<EventDto> nextWeekendEvents() {
+        RestTemplate restTemplate = new RestTemplate();
+        List<EventDto> events = convertEvents(restTemplate.getForObject(backendServiceUrl + "/events/nextWeekend", List.class));
+        determineCurrentUserRating(events);
         return events;
     }
 
@@ -81,14 +89,7 @@ public class EventsService {
         Map<String, String> parameters = new HashMap<>();
         parameters.put("from", dateFormate.format(startTime.getTime()));
         parameters.put("to", dateFormate.format(endTime.getTime()));
-        List<EventDto> events = restTemplate.getForObject(backendServiceUrl + "/events/find?from={from}&to={to}", List.class, parameters);
-
-        return events;
-    }
-
-    public List<EventDto> nextWeekendEvents() {
-        RestTemplate restTemplate = new RestTemplate();
-        List<EventDto> events = restTemplate.getForObject(backendServiceUrl + "/events/nextWeekend", List.class);
+        List<EventDto> events = convertEvents(restTemplate.getForObject(backendServiceUrl + "/events/find?from={from}&to={to}", List.class, parameters));
 
         return events;
     }
@@ -99,11 +100,42 @@ public class EventsService {
 
         return cities;
     }
-    
+
     public void setCity(String city) {
         RestTemplate restTemplate = new RestTemplate();
         Map<String, String> parameters = new HashMap<>();
         parameters.put("city", city);
         restTemplate.getForObject(backendServiceUrl + "/events/setCity?city={city}", List.class, parameters);
+    }
+
+    private void determineCurrentUserRating(List<EventDto> events) {
+        // get the user
+        FacesContext facesContext = FacesContext.getCurrentInstance();
+        HttpSession session = (HttpSession) facesContext.getExternalContext().getSession(true);
+        UserDto loggedInUser = (UserDto) session.getAttribute("user");
+        
+        events.stream().map((event) -> {
+            event.getAttendingUsers().forEach((dbUserId) -> {
+                if (dbUserId.equals(loggedInUser.getId())) {
+                    event.setUserIsAttending(Boolean.TRUE);
+                }
+            });
+            return event;
+        }).forEachOrdered((event) -> {
+            event.getInterestedUsers().forEach((dbUserId) -> {
+                if (dbUserId.equals(loggedInUser.getId())) {
+                    event.setUserIsInterested(Boolean.TRUE);
+                }
+            });
+        });
+    }
+
+    private List<EventDto> convertEvents(List<EventDto> events) {
+        List<EventDto> convertedEvents = new ArrayList<>();
+        for (int i = 0; i<events.size(); i++) {
+            ObjectMapper mapper = new ObjectMapper(); 
+            convertedEvents.add(mapper.convertValue(events.get(i), EventDto.class));
+        }
+        return convertedEvents;
     }
 }

@@ -7,6 +7,7 @@ import java.util.Set;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -46,7 +47,7 @@ public class Event {
             joinColumns=@JoinColumn(name="event_id"),
             inverseJoinColumns=@JoinColumn(name="tag_id")
         )
-	public Set<Tag> tags;
+	private Set<Tag> tags;
     
 	@ManyToMany(
             targetEntity=User.class,
@@ -57,7 +58,7 @@ public class Event {
             joinColumns=@JoinColumn(name="event_id"),
             inverseJoinColumns=@JoinColumn(name="user_id")
         )
-	public Set<User> interestedUsers;
+	private Set<User> interestedUsers;
 
 	@ManyToMany(
             targetEntity=User.class,
@@ -67,8 +68,9 @@ public class Event {
             name="attending",
             joinColumns=@JoinColumn(name="event_id"),
             inverseJoinColumns=@JoinColumn(name="user_id")
+            
         )
-	public Set<User> attendingUsers;
+	private Set<User> attendingUsers;
 	
 	@OneToOne()
 	@JoinColumn(name="place_id")
