@@ -115,29 +115,29 @@
 
                 <p:column headerText="#{label['events.search.interested']}">
                      <p:commandLink
-                        action="#{findEventsView.toggleUserIsInterested()}"
+                        action="#{findEventsView.toggleUserIsInterested(event.id)}"
                         update="eventsTable" ajax="true" rendered="#{event.userIsInterested}" >
-                        <p:graphicImage value="/resources/images/tick.png" />
+                         <p:graphicImage value="/resources/images/tick.png" width="32" height="32"  />
                     </p:commandLink>
                     
                     <p:commandLink
-                        action="#{findEventsView.toggleUserIsInterested()}"
+                        action="#{findEventsView.toggleUserIsInterested(event.id)}"
                         update="eventsTable" ajax="true" rendered="#{not event.userIsInterested}" >
-                        <p:graphicImage value="/resources/images/red-cross.png" />
+                        <p:graphicImage value="/resources/images/red-cross.png" width="32" height="32" />
                     </p:commandLink>
                 </p:column>
 
                 <p:column headerText="#{label['events.search.attending']}">
                     <p:commandLink
-                        action="#{findEventsView.toggleUserIsAttending(event.userIsAttending)}"
+                        action="#{findEventsView.toggleUserIsAttending(event.id)}"
                         update="eventsTable" ajax="true" rendered="#{event.userIsAttending}" >
-                        <p:graphicImage value="/resources/images/tick.png" />
+                        <p:graphicImage value="/resources/images/tick.png" width="32" height="32" />
                     </p:commandLink>
 
                     <p:commandLink
-                        action="#{findEventsView.toggleUserIsAttending(event.userIsInterested)}"
+                        action="#{findEventsView.toggleUserIsAttending(event.id)}"
                         update="eventsTable" ajax="true" rendered="#{not event.userIsAttending}" >
-                        <p:graphicImage value="/resources/images/red-cross.png" />
+                        <p:graphicImage value="/resources/images/red-cross.png" width="32" height="32" />
                     </p:commandLink>
                 </p:column>
 

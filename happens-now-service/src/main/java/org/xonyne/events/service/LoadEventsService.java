@@ -99,7 +99,7 @@ public class LoadEventsService {
 
     private final double LAT_100_METRES = 0.00089d;
     private final double LNG_100_METRES = 0.001275d;
-    private final Integer SQUARE_100M_STEPS_FROM_CENTER = 1;
+    private final Integer SQUARE_100M_STEPS_FROM_CENTER = 10;
     
     private final String FB_BASE_URL = "https://www.facebook.com/";
 
@@ -226,7 +226,7 @@ public class LoadEventsService {
 
     // --> load users and ratings every night 05:00 AM
     //@Scheduled(cron = "0 0 5 * * ?")
-    @Scheduled(fixedDelay = 3600000, initialDelay = 1000)
+    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
     public void loadUsersAndRatings() {
         loadEventsLogger.info("&&&&&&&&& &&&&&&&&& &&&&&&&&&  LOAD USERS AND RATINGS METHOD CALLED &&&&&&&&& &&&&&&&&& &&&&&&&&& ");
         LoadEventsServiceStatistics userAndRatingStats = new LoadEventsServiceStatistics();

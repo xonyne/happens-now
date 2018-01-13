@@ -21,7 +21,7 @@ public class FindEventsView {
 
     private Map<String, String> categories = new HashMap<>();
     private String selectedCategory;
-    
+
     private List<String> cities;
     private String selectedCity;
 
@@ -36,35 +36,37 @@ public class FindEventsView {
             FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Warning!", "Backend can not be reached!"));
         }
     }
-    
-    public void toggleUserIsAttending(Long eventId){
-            EventDto event = getEventDtoFromId(eventId);
-            AppContext.getEventsService().setUserIsAttending(event.getId(), !event.getUserIsAttending());
-    }
-    
-    public void toggleUserIsInterested(Long eventId){
-            EventDto event = getEventDtoFromId(eventId);
-            AppContext.getEventsService().setUserIsInterested(event.getId(), !event.getUserIsInterested());
-    }
-    
-    private EventDto getEventDtoFromId(Long eventId) {
-        for (EventDto e:this.events) {
-            if (Objects.equals(e.getId(), eventId)) return e;
+
+    public void toggleUserIsAttending(Long eventId) {
+        for (EventDto e : this.events) {
+            if (Objects.equals(e.getId(), eventId)) {
+                e.setUserIsAttending(!e.getUserIsAttending());
+                AppContext.getEventsService().setUserIsAttending(e.getId(), !e.getUserIsAttending());
+            }
         }
-        return null;
     }
     
+    public void toggleUserIsInterested(Long eventId) {
+        for (EventDto e : this.events) {
+            if (Objects.equals(e.getId(), eventId)) {
+                e.setUserIsInterested(!e.getUserIsInterested());
+                AppContext.getEventsService().setUserIsInterested(e.getId(), !e.getUserIsInterested());
+            }
+
+        }
+    }
+
     private List<String> loadCities() {
         return AppContext.getEventsService().cityNames();
     }
-    
+
     public String getSelectedCity() {
         return selectedCity;
     }
 
     public void setSelectedCity(String selectedCity) {
         this.selectedCity = selectedCity;
-        //set the city in the backend
+        //set the selected city in the backend
         AppContext.getEventsService().setCity(selectedCity);
     }
 
@@ -104,7 +106,7 @@ public class FindEventsView {
     public Map<String, String> getCategories() {
         return categories;
     }
-        
+
     public void setCategories(HashMap<String, String> categories) {
         this.categories = categories;
     }
