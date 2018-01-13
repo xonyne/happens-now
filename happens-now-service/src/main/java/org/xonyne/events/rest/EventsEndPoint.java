@@ -112,5 +112,13 @@ public class EventsEndPoint {
 		logger.debug("authenticate for user :" + userName);
 		return AppContext.ctx.getBean(LoadEventsService.class).findUser(userName, password);
 	}
-	
+        
+        //TODO
+        /*@GET
+	@Path("/setAttending")
+	@Produces(MediaType.APPLICATION_JSON)
+	public UserDto setAttending(@QueryParam("username") String userName, @QueryParam("password") String password) {
+		logger.debug("authenticate for user :" + userName);
+		return AppContext.ctx.getBean(LoadEventsService.class).findUser(userName, password);
+	}*/
 }

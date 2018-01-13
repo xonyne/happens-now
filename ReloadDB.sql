@@ -123,6 +123,21 @@ WITH (
 ALTER TABLE public.place
   OWNER TO postgres;
 
+CREATE TABLE public.category
+(
+  category_id bigint NOT NULL DEFAULT nextval('category_category_id_seq'::regclass),
+  label_key character varying(255) NOT NULL,
+  parentcategory_id bigint,
+  CONSTRAINT category_pk PRIMARY KEY (category_id ),
+  CONSTRAINT parent_category_fk FOREIGN KEY (parentcategory_id)
+      REFERENCES public.category (category_id) 
+      ON UPDATE NO ACTION ON DELETE NO ACTION
+)
+WITH (
+  OIDS=FALSE
+);
+ALTER TABLE public.category
+  OWNER TO postgres;
 
 CREATE TABLE public.event
 (
@@ -133,9 +148,13 @@ CREATE TABLE public.event
   endDateTime timestamp without time zone,
   url character varying(255),
   place_id bigint,
+  category_id bigint,
   CONSTRAINT event_pk PRIMARY KEY (event_id ),
   CONSTRAINT place_fk FOREIGN KEY (place_id)
       REFERENCES public.place (place_id) 
+      ON UPDATE NO ACTION ON DELETE NO ACTION,
+  CONSTRAINT category_fk FOREIGN KEY (category_id)
+      REFERENCES public.category (category_id)
       ON UPDATE NO ACTION ON DELETE NO ACTION
 )
 WITH (
@@ -177,23 +196,6 @@ WITH (
 );
 ALTER TABLE public.attending
   OWNER TO postgres;
-
-CREATE TABLE public.category
-(
-  category_id bigint NOT NULL DEFAULT nextval('category_category_id_seq'::regclass),
-  label_key character varying(255) NOT NULL,
-  parentcategory_id bigint,
-  CONSTRAINT category_pk PRIMARY KEY (category_id ),
-  CONSTRAINT parent_category_fk FOREIGN KEY (parentcategory_id)
-      REFERENCES public.category (category_id) 
-      ON UPDATE NO ACTION ON DELETE NO ACTION
-)
-WITH (
-  OIDS=FALSE
-);
-ALTER TABLE public.category
-  OWNER TO postgres;
-
 
 CREATE TABLE public.tag
 (

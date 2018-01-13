@@ -107,13 +107,17 @@ public class EventsService {
         parameters.put("city", city);
         restTemplate.getForObject(backendServiceUrl + "/events/setCity?city={city}", List.class, parameters);
     }
-
-    private void determineCurrentUserRating(List<EventDto> events) {
+    
+    private UserDto getCurrentUser(){
         // get the user
         FacesContext facesContext = FacesContext.getCurrentInstance();
         HttpSession session = (HttpSession) facesContext.getExternalContext().getSession(true);
-        UserDto loggedInUser = (UserDto) session.getAttribute("user");
-        
+        return (UserDto) session.getAttribute("user");
+    }
+
+    private void determineCurrentUserRating(List<EventDto> events) {
+        UserDto loggedInUser = getCurrentUser();
+
         events.stream().map((event) -> {
             event.getAttendingUsers().forEach((dbUserId) -> {
                 if (dbUserId.equals(loggedInUser.getId())) {
@@ -132,10 +136,25 @@ public class EventsService {
 
     private List<EventDto> convertEvents(List<EventDto> events) {
         List<EventDto> convertedEvents = new ArrayList<>();
-        for (int i = 0; i<events.size(); i++) {
-            ObjectMapper mapper = new ObjectMapper(); 
+        for (int i = 0; i < events.size(); i++) {
+            ObjectMapper mapper = new ObjectMapper();
             convertedEvents.add(mapper.convertValue(events.get(i), EventDto.class));
         }
         return convertedEvents;
     }
+
+    public void setUserIsAttending(Long eventId, boolean isAttending) {
+        UserDto loggedInUser = getCurrentUser();
+        RestTemplate restTemplate = new RestTemplate();
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("userId", String.valueOf(loggedInUser.getId()));
+        parameters.put("eventId", String.valueOf(eventId));
+        parameters.put("attending", String.valueOf(isAttending));
+        restTemplate.getForObject(backendServiceUrl + "/events/setAttending?userId={userId}&eventId={eventId}&attending={attending}", List.class, parameters);
+    }
+
+    public void setUserIsInterested(Long id, boolean b) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
 }
+

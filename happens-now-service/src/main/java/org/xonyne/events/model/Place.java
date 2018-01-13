@@ -21,10 +21,8 @@ import javax.persistence.Transient;
  */
 @Entity
 @Table(name="place")
-//@SequenceGenerator(name="place_placeId_seq", sequenceName="place_placeId_seq", initialValue = 1, allocationSize = 1)
 public class Place {
 
-//	@GeneratedValue(generator="place_placeId_seq")
 	@Id
 	@Column(name="place_id")
 	private Long id;

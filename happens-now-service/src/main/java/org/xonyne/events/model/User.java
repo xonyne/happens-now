@@ -18,10 +18,8 @@ import javax.persistence.Transient;
  */
 @Entity
 @Table(name="users")
-//@SequenceGenerator(name="user_userId_seq", sequenceName="user_userId_seq", initialValue = 1, allocationSize = 1)
 public class User {
 
-//	@GeneratedValue(generator="user_userId_seq")
 	@Id
 	@Column(name="user_id")
 	private Long id;

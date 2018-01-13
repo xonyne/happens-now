@@ -112,15 +112,33 @@
                         <f:convertDateTime type="date" pattern="dd/MM/yyyy HH:mm" />
                     </h:outputText>
                 </p:column>
-                
+
                 <p:column headerText="#{label['events.search.interested']}">
-                    <p:graphicImage value="/resources/images/tick.png" rendered="#{event.userIsInterested}"/>
-                    <p:graphicImage value="/resources/images/red-cross.png"  rendered="#{not event.userIsInterested}"/>
+                     <p:commandLink
+                        action="#{findEventsView.toggleUserIsInterested()}"
+                        update="eventsTable" ajax="true" rendered="#{event.userIsInterested}" >
+                        <p:graphicImage value="/resources/images/tick.png" />
+                    </p:commandLink>
+                    
+                    <p:commandLink
+                        action="#{findEventsView.toggleUserIsInterested()}"
+                        update="eventsTable" ajax="true" rendered="#{not event.userIsInterested}" >
+                        <p:graphicImage value="/resources/images/red-cross.png" />
+                    </p:commandLink>
                 </p:column>
-                
+
                 <p:column headerText="#{label['events.search.attending']}">
-                    <p:graphicImage value="/resources/images/tick.png" rendered="#{event.userIsAttending}"/>
-                    <p:graphicImage value="/resources/images/red-cross.png"  rendered="#{not event.userIsAttending}"/>
+                    <p:commandLink
+                        action="#{findEventsView.toggleUserIsAttending(event.userIsAttending)}"
+                        update="eventsTable" ajax="true" rendered="#{event.userIsAttending}" >
+                        <p:graphicImage value="/resources/images/tick.png" />
+                    </p:commandLink>
+
+                    <p:commandLink
+                        action="#{findEventsView.toggleUserIsAttending(event.userIsInterested)}"
+                        update="eventsTable" ajax="true" rendered="#{not event.userIsAttending}" >
+                        <p:graphicImage value="/resources/images/red-cross.png" />
+                    </p:commandLink>
                 </p:column>
 
             </p:dataTable>

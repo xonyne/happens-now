@@ -135,22 +135,26 @@ public class LoadEventsService {
 
     // --> load events every night 01:00 AM
     //@Scheduled(cron = "0 0 1 * * ?")
-    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
+    @Scheduled(fixedDelay = 3600000, initialDelay = 1000)
     public void loadEvents() {
         loadEventsLogger.debug("%%%%% %%%%% %%%%%  LOAD EVENTS METHOD CALLED %%%%% %%%%% %%%%%");
         JSONObject jsonData;
         FacebookEventResults facebookEvents;
 
         LoadEventsServiceStatistics eventStats = new LoadEventsServiceStatistics();
+        int totalSteps = (SQUARE_100M_STEPS_FROM_CENTER*2*SQUARE_100M_STEPS_FROM_CENTER*2) * this.cityList.size();
+        int currentStep = 0;
+        long totalTimeAllCycles = 0;
+        long startTimeOfCycle = 0;
+        
         for (City currentCity : this.cityList) {
-
             loadEventsLogger.info("***** ***** ***** START READ EVENTS FROM " + currentCity.getName() + " ***** ***** *****");
-            int step = 0;
             for (int lng = -SQUARE_100M_STEPS_FROM_CENTER; lng < SQUARE_100M_STEPS_FROM_CENTER; lng++) {
                 double currentLongitude = Double.valueOf(currentCity.getLongitude()) + (lng * LNG_100_METRES);
                 for (int lat = -SQUARE_100M_STEPS_FROM_CENTER; lat < SQUARE_100M_STEPS_FROM_CENTER; lat++) {
                     double currentLatitude = Double.valueOf(currentCity.getLatitude()) + (lat * LAT_100_METRES);
                     try {
+                        startTimeOfCycle = System.currentTimeMillis();
                         loadEventsLogger.debug("starting to load events");
 
                         String url = getEventsUrl(String.valueOf(currentLatitude), String.valueOf(currentLongitude));
@@ -172,8 +176,10 @@ public class LoadEventsService {
                         if (loadEventsLogger.isDebugEnabled()) {
                             loadEventsLogger.debug("facebook events parsed");
                         }
-                        step++;
-                        loadEventsLogger.info("Step " + step + "/" + (SQUARE_100M_STEPS_FROM_CENTER*2*SQUARE_100M_STEPS_FROM_CENTER*2));
+                        currentStep++;
+                        loadEventsLogger.info("Step: " + currentStep + "/" + totalSteps);
+                        LocalTime timeOfDay = LocalTime.ofSecondOfDay((((totalSteps - currentStep) * delayBetweenGraphAPICallsInMs) + ((totalSteps - currentStep) * (totalTimeAllCycles / currentStep))) / 1000);
+                        loadEventsLogger.info("Time left: " + timeOfDay.toString());
                         loadEventsLogger.info("Location: https://www.google.com/maps/search/?api=1&query=" + currentLatitude + "," + currentLongitude);
                         loadEventsLogger.info("Events retreived: " + facebookEvents.events.length);
 
@@ -197,11 +203,11 @@ public class LoadEventsService {
                             }
 
                         }
+                        totalTimeAllCycles += System.currentTimeMillis() - startTimeOfCycle;
                     } catch (Exception ex) {
                         logger.error("error in load events," + ex.getMessage(), ex);
                     } finally {
                         try {
-                            // maybe dangerous because of blockage of the service (login may be blocked)
                             Thread.sleep(delayBetweenGraphAPICallsInMs);
                         } catch (InterruptedException ex) {
                             java.util.logging.Logger.getLogger(LoadEventsService.class.getName()).log(Level.SEVERE, null, ex);
@@ -261,7 +267,6 @@ public class LoadEventsService {
             }
             loadEventsLogger.debug(" attending ratings for event " + event + " stored successfully");
             try {
-                // maybe dangerous because of blockage of the service (login may be blocked)
                 Thread.sleep(delayBetweenGraphAPICallsInMs);
             } catch (InterruptedException ex) {
                 java.util.logging.Logger.getLogger(LoadEventsService.class.getName()).log(Level.SEVERE, null, ex);
@@ -315,7 +320,7 @@ public class LoadEventsService {
     private Event findOrStoreEvent(FacebookEvent facebookEvent, Place place) {
         // create event
         Event event = new Event(facebookEvent.id, facebookEvent.name, facebookEvent.description,
-                facebookEvent.startTime, facebookEvent.endTime, null, null, null, null, place);
+                facebookEvent.startTime, facebookEvent.endTime, null, null, null, null, place, null );
         loadEventsLogger.debug(" persist event");
         event = eventsDao.findOrPersist(event);
         return event;

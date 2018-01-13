@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
@@ -34,6 +35,23 @@ public class FindEventsView {
         if (this.cities.isEmpty()) {
             FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_WARN, "Warning!", "Backend can not be reached!"));
         }
+    }
+    
+    public void toggleUserIsAttending(Long eventId){
+            EventDto event = getEventDtoFromId(eventId);
+            AppContext.getEventsService().setUserIsAttending(event.getId(), !event.getUserIsAttending());
+    }
+    
+    public void toggleUserIsInterested(Long eventId){
+            EventDto event = getEventDtoFromId(eventId);
+            AppContext.getEventsService().setUserIsInterested(event.getId(), !event.getUserIsInterested());
+    }
+    
+    private EventDto getEventDtoFromId(Long eventId) {
+        for (EventDto e:this.events) {
+            if (Objects.equals(e.getId(), eventId)) return e;
+        }
+        return null;
     }
     
     private List<String> loadCities() {
