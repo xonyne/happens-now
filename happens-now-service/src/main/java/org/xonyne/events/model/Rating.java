@@ -25,25 +25,21 @@ public class Rating {
 	@Id
 	@Column(name="rating_id")
 	private Long id;
-	
         private Integer rating;
-	
-	@OneToOne()
-	@JoinColumn(name="event_id")
-	private Event event;
-	@OneToOne()
-	@JoinColumn(name="user_id")
-	private User user;
+        @Column(name="event_id")
+	private Long eventId;
+        @Column(name="user_id")
+	private Long userId;
 
 	public Rating(){
 	}
 
-	public Event getEvent() {
-		return event;
+	public Long getEventId() {
+		return eventId;
 	}
 
-	public void setEvent(Event event) {
-		this.event = event;
+	public void setEventId(Long eventId) {
+		this.eventId = eventId;
 	}
 
 	public Long getId() {
@@ -54,12 +50,12 @@ public class Rating {
 		this.id = id;
 	}
         
-        public User getUser() {
-		return this.user;
+        public Long getUserId() {
+		return userId;
 	}
 
-	public void setUser(User user) {
-		this.user = user;
+	public void setUserId(Long userId) {
+		this.userId = userId;
 	}
 
 	public Integer getRating() {

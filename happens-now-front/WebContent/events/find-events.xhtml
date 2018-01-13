@@ -94,7 +94,7 @@
                          paginatorTemplate="{CurrentPageReport} {FirstPageLink} {PreviousPageLink} {PageLinks} {NextPageLink} {LastPageLink} {RowsPerPageDropdown}"
                          rowsPerPageTemplate="5,10,15" emptyMessage="#{label['events.search.empty-message']}">
                 <p:column headerText="#{label['events.search.event-link']}">
-                    <h:outputLink value="https://www.facebook.com/#{event.id}" target="_blank">facebook</h:outputLink>
+                    <h:outputLink value="#{event.url}" target="_blank">facebook</h:outputLink>
                 </p:column>
 
                 <p:column headerText="#{label['events.search.event-title']}">

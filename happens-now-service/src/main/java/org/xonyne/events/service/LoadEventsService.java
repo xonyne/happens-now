@@ -100,6 +100,8 @@ public class LoadEventsService {
     private final double LAT_100_METRES = 0.00089d;
     private final double LNG_100_METRES = 0.001275d;
     private final Integer SQUARE_100M_STEPS_FROM_CENTER = 1;
+    
+    private final String FB_BASE_URL = "https://www.facebook.com/";
 
     public LoadEventsService() {
         logger.info("LoadEventsService created successfully");
@@ -135,7 +137,7 @@ public class LoadEventsService {
 
     // --> load events every night 01:00 AM
     //@Scheduled(cron = "0 0 1 * * ?")
-    @Scheduled(fixedDelay = 3600000, initialDelay = 1000)
+    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
     public void loadEvents() {
         loadEventsLogger.debug("%%%%% %%%%% %%%%%  LOAD EVENTS METHOD CALLED %%%%% %%%%% %%%%%");
         JSONObject jsonData;
@@ -224,13 +226,20 @@ public class LoadEventsService {
 
     // --> load users and ratings every night 05:00 AM
     //@Scheduled(cron = "0 0 5 * * ?")
-    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
+    @Scheduled(fixedDelay = 3600000, initialDelay = 1000)
     public void loadUsersAndRatings() {
-        loadEventsLogger.debug("&&&&&&&&& &&&&&&&&& &&&&&&&&&  LOAD USERS AND RATINGS METHOD CALLED &&&&&&&&& &&&&&&&&& &&&&&&&&& ");
+        loadEventsLogger.info("&&&&&&&&& &&&&&&&&& &&&&&&&&&  LOAD USERS AND RATINGS METHOD CALLED &&&&&&&&& &&&&&&&&& &&&&&&&&& ");
         LoadEventsServiceStatistics userAndRatingStats = new LoadEventsServiceStatistics();
 
         List<Event> allEvents = eventsDao.findAll();
         for (Event event : allEvents) {
+            /*
+            loadEventsLogger.info("Step: " + currentStep + "/" + totalSteps);
+                        LocalTime timeOfDay = LocalTime.ofSecondOfDay((((totalSteps - currentStep) * delayBetweenGraphAPICallsInMs) + ((totalSteps - currentStep) * (totalTimeAllCycles / currentStep))) / 1000);
+                        loadEventsLogger.info("Time left: " + timeOfDay.toString());
+                        loadEventsLogger.info("Location: https://www.google.com/maps/search/?api=1&query=" + currentLatitude + "," + currentLongitude);
+                        loadEventsLogger.info("Events retreived: " + facebookEvents.events.length);*/
+            
             Set<User> storedInterestedUsers = findOrStoreInterestedUsers(event.getId());
             Set<User> storedAttendendingUsers = findOrStoreAttendingUsers(event.getId());
             event.setAttendingUsers(storedAttendendingUsers);
@@ -242,10 +251,10 @@ public class LoadEventsService {
                     userAndRatingStats.increaseNewUsers(1);
                 }
                 Rating rating = new Rating();
-                rating.setEvent(event);
-                rating.setUser(user);
+                rating.setEventId(event.getId());
+                rating.setUserId(user.getId());
                 rating = eventsDao.findOrPersist(rating);
-                if (rating.getRating() < interestedRatingModifier) {
+                if (rating.getRating() == null || rating.getRating() < interestedRatingModifier) {
                     rating.setRating(interestedRatingModifier);
                     eventsDao.merge(rating);
                 }
@@ -257,10 +266,10 @@ public class LoadEventsService {
                     userAndRatingStats.increaseNewUsers(1);
                 }
                 Rating rating = new Rating();
-                rating.setEvent(event);
-                rating.setUser(user);
+                rating.setEventId(event.getId());
+                rating.setUserId(user.getId());
                 rating = eventsDao.findOrPersist(rating);
-                if (rating.getRating() < attendingRatingModifier) {
+                if (rating.getRating() == null || rating.getRating() < attendingRatingModifier) {
                     rating.setRating(attendingRatingModifier);
                     eventsDao.merge(rating);
                 }
@@ -272,8 +281,8 @@ public class LoadEventsService {
                 java.util.logging.Logger.getLogger(LoadEventsService.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        loadEventsLogger.debug("&&&&&&&&& &&&&&&&&& &&&&&&&&&  LOAD USERS AND RATINGS INVOCATION STATISTICS &&&&&&&&& &&&&&&&&& &&&&&&&&& ");
-        loadEventsLogger.debug("Unique users: " + userAndRatingStats.getNewUsers());
+        loadEventsLogger.info("&&&&&&&&& &&&&&&&&& &&&&&&&&&  LOAD USERS AND RATINGS INVOCATION STATISTICS &&&&&&&&& &&&&&&&&& &&&&&&&&& ");
+        loadEventsLogger.info("Unique new users: " + userAndRatingStats.getNewUsers());
     }
 
     private Set<User> findOrStoreAttendingUsers(Long eventId) {
@@ -320,7 +329,7 @@ public class LoadEventsService {
     private Event findOrStoreEvent(FacebookEvent facebookEvent, Place place) {
         // create event
         Event event = new Event(facebookEvent.id, facebookEvent.name, facebookEvent.description,
-                facebookEvent.startTime, facebookEvent.endTime, null, null, null, null, place, null );
+                facebookEvent.startTime, facebookEvent.endTime, this.FB_BASE_URL + facebookEvent.id, null, null, null, place, null );
         loadEventsLogger.debug(" persist event");
         event = eventsDao.findOrPersist(event);
         return event;
@@ -522,7 +531,7 @@ public class LoadEventsService {
             event.getAttendingUsers().forEach((user) -> {
                 attendingUsers.add(user.getId());
             });
-            result.add(new EventDto(event.getId(), event.getTitle(), event.getStartDateTime(), event.getEndDateTime(),interestedUsers, attendingUsers));
+            result.add(new EventDto(event.getId(), event.getTitle(), event.getStartDateTime(), event.getEndDateTime(),interestedUsers, attendingUsers, event.getUrl()));
         });
 
         logger.debug(" retreived result count:" + result.size());

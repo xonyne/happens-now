@@ -24,8 +24,6 @@ public class HibernateEventsDao extends AbstractDao implements EventsDao {
     @PersistenceContext
     private EntityManager entityManager;
 
-//	@Autowired
-//	private SessionFactory sessionFactory;
     @Override
     @Transactional
     public Event findEvent(Event event) {
@@ -59,12 +57,12 @@ public class HibernateEventsDao extends AbstractDao implements EventsDao {
 
         try {
             session = sessionFactory.openSession();
-            Query query = session.createQuery("from Rating r where r.event = :event AND r.user = :user");
-            query.setParameter("event", rating.getEvent().getId()).setParameter("user", rating.getUser().getId());
+            Query query = session.createQuery("from Rating r " +
+                    "  WHERE r.eventId = :eventId AND r.userId = :userId");
+            query.setParameter("eventId", rating.getEventId()).setParameter("userId", rating.getUserId());
             storedRating = (Rating) query.uniqueResult();
             if (storedRating == null) {
-                persistObject(rating);
-                storedRating = entityManager.find(Rating.class, rating.getId());
+                storedRating = (Rating) persistObject(rating);
             }
         } finally {
             if (session != null) {
@@ -155,6 +153,7 @@ public class HibernateEventsDao extends AbstractDao implements EventsDao {
     }
 
     @Override
+    @Transactional
     public List<Event> findAll() {
         SessionFactory sessionFactory = getSession();
         Session session = null;

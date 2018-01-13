@@ -12,6 +12,8 @@ public class EventDto implements Serializable {
     private String title;
     private Date start;
     private Date end;
+    private String url;
+
     public Set<Long> interestedUsers;
     public Set<Long> attendingUsers;
     private Boolean userIsInterested;
@@ -23,7 +25,7 @@ public class EventDto implements Serializable {
     
     public EventDto(){}
 
-    public EventDto(Long id, String title, Date start, Date end,Set<Long> interestedUsers,Set<Long> attendingUsers) {
+    public EventDto(Long id, String title, Date start, Date end,Set<Long> interestedUsers,Set<Long> attendingUsers, String url) {
         super();
         this.id = id;
         this.title = title;
@@ -31,6 +33,8 @@ public class EventDto implements Serializable {
         this.end = end;
         this.interestedUsers = interestedUsers;
         this.attendingUsers = attendingUsers;
+        this.url = url;
+        // default values
         this.userIsInterested = false;
         this.userIsAttending = false;
     }
@@ -93,6 +97,14 @@ public class EventDto implements Serializable {
 
     public void setAttendingUsers(Set<Long> attendingUsers) {
         this.attendingUsers = attendingUsers;
+    }
+    
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
     }
 
 }

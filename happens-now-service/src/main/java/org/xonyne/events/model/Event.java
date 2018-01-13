@@ -30,7 +30,7 @@ public class Event {
 
     @Id
     @Column(name = "event_id")
-    private Long eventId;
+    private Long id;
     private String title;
     private String description;
     private Date startDateTime;
@@ -80,11 +80,11 @@ public class Event {
     @Transient
     private boolean isStale;
 
-    public Event(Long eventId, String title, String description,
+    public Event(Long id, String title, String description,
             Date startDateTime, Date endDateTime, String url, Set<Tag> tags,
             Set<User> interestedUsers, Set<User> attendingUsers, Place place, Category category) {
         super();
-        this.eventId = eventId;
+        this.id = id;
         this.title = title;
         this.description = description;
         this.startDateTime = startDateTime;
@@ -103,11 +103,11 @@ public class Event {
     }
 
     public Long getId() {
-        return eventId;
+        return id;
     }
 
-    public void setId(Long eventId) {
-        this.eventId = eventId;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getTitle() {

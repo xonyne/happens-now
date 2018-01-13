@@ -251,7 +251,7 @@ CREATE TABLE public.rating
   user_id bigint NOT NULL,
   event_id bigint NOT NULL,
   rating integer,
-  CONSTRAINT rating_pk PRIMARY KEY (rating_id ),
+  CONSTRAINT rating_pk PRIMARY KEY (rating_id),
   CONSTRAINT event_fk FOREIGN KEY (event_id)
       REFERENCES public.event (event_id) 
       ON UPDATE NO ACTION ON DELETE NO ACTION,

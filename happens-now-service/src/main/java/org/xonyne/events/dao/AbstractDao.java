@@ -21,16 +21,19 @@ public class AbstractDao {
 	}
 
 	@Transactional(propagation = Propagation.REQUIRED)
-	public void persistObject(Object object) {
+	public Object persistObject(Object object) {
 		logger.debug("create " + object.getClass().getName() + " instance");
-		try {
-			entityManager.merge(object);
+		Object o;
+                try {
+			o = entityManager.merge(object);
 			entityManager.flush();
+                       
 			logger.debug("persisted successful");
 		} catch (RuntimeException re) {
 			logger.error("persist " + object.getClass().getName() + " failed", re);
 			throw re;
 		}
+                return o;
 	}
 	
 	/**
