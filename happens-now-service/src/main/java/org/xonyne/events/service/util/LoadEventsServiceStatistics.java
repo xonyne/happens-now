@@ -16,8 +16,10 @@ public class LoadEventsServiceStatistics {
     private int newPlaces;
     private int newUsers;
     private int graphApiCalls;
-    
-    public LoadEventsServiceStatistics(){
+    private int duplicateEvents;
+    private int totalNewEvents;
+
+    public LoadEventsServiceStatistics() {
         this.totalEvents = 0;
         this.newEvents = 0;
         this.newPlaces = 0;
@@ -38,7 +40,7 @@ public class LoadEventsServiceStatistics {
     }
 
     public void increaseTotalEvents(int count) {
-        this.totalEvents+=count;
+        this.totalEvents += count;
     }
 
     public int getNewEvents() {
@@ -46,7 +48,11 @@ public class LoadEventsServiceStatistics {
     }
 
     public void increaseNewEvents(int count) {
-        this.newEvents+=count;
+        this.newEvents += count;
+    }
+
+    public void resetNewEvents() {
+        this.newEvents = 0;
     }
 
     public int getNewPlaces() {
@@ -54,7 +60,7 @@ public class LoadEventsServiceStatistics {
     }
 
     public void increaseNewPlaces(int count) {
-        this.newPlaces+=count;
+        this.newPlaces += count;
     }
 
     public int getNewUsers() {
@@ -62,7 +68,7 @@ public class LoadEventsServiceStatistics {
     }
 
     public void increaseNewUsers(int count) {
-        this.newUsers+=count;
+        this.newUsers += count;
     }
 
     public int getGraphApiCalls() {
@@ -70,6 +76,26 @@ public class LoadEventsServiceStatistics {
     }
 
     public void increaseGraphApiCalls(int count) {
-        this.graphApiCalls+=count;
+        this.graphApiCalls += count;
+    }
+
+    public void increaseDuplicateEvents(int i) {
+        this.duplicateEvents++;
+    }
+
+    public int getDuplicateEvents() {
+        return duplicateEvents;
+    }
+
+    public void resetDuplicateEvents() {
+        this.duplicateEvents = 0;
+    }
+
+    public int getTotalNewEvents() {
+        return this.totalNewEvents;
+    }
+    
+    public void increaseTotalNewEvents(int count) {
+        this.totalNewEvents += count;
     }
 }

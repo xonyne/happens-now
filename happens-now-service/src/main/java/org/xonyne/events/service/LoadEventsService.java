@@ -43,6 +43,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneOffset;
+import java.util.Arrays;
 import java.util.logging.Level;
 import org.xonyne.events.model.City;
 import org.xonyne.events.model.Rating;
@@ -151,6 +152,8 @@ public class LoadEventsService {
         long startTimeOfCycle = 0;
         double currentLongitude;
         double currentLatitude;
+        Set<FacebookEvent> eventsOfLastCall = new HashSet<>();
+        boolean lastCallOver = false;
 
         for (City currentCity : this.cityList) {
             loadEventsLogger.info("***** ***** ***** START READ EVENTS FROM " + currentCity.getName() + " ***** ***** *****");
@@ -187,7 +190,8 @@ public class LoadEventsService {
                         loadEventsLogger.info("Time left: " + timeOfDay.toString());
                         loadEventsLogger.info("Location: https://www.google.com/maps/search/?api=1&query=" + currentLatitude + "," + currentLongitude);
                         loadEventsLogger.info("Events retreived: " + facebookEvents.events.length);
-
+                        
+                        
                         for (FacebookEvent facebookEvent : facebookEvents.events) {
                             try {
 
@@ -201,18 +205,29 @@ public class LoadEventsService {
                                 Event event = findOrStoreEvent(facebookEvent, place);
                                 if (!event.getIsStale()) {
                                     eventStats.increaseNewEvents(1);
+                                    eventStats.increaseTotalNewEvents(1);
                                 }
 
-                                loadEventsLogger.debug("getting users and participation of event " + event);
-                                loadUsersAndParticipation(event);
-                                loadEventsLogger.debug(" event " + event + " merged successfully");
+                                if (eventsOfLastCall.contains(facebookEvent)) eventStats.increaseDuplicateEvents(1);
 
                             } catch (Exception e) {
                                 logger.error("error in storing information of event id:" + facebookEvent.id + "," + e.getMessage(), e);
                             }
 
                         }
-
+                        loadEventsLogger.info("Duplicate events in this call: " + eventStats.getDuplicateEvents());
+                        loadEventsLogger.info("New events in this call: " + eventStats.getNewEvents());
+                        eventStats.resetDuplicateEvents();
+                        eventStats.resetNewEvents();
+                        
+                        if (lastCallOver) {
+                            eventsOfLastCall.clear();         
+                            lastCallOver = false;
+                        } else {
+                            lastCallOver = true;
+                            eventsOfLastCall.addAll(Arrays.asList(facebookEvents.events));
+                        }
+                        
                         totalTimeAllCycles += System.currentTimeMillis() - startTimeOfCycle;
                     } catch (Exception ex) {
                         logger.error("error in load events," + ex.getMessage(), ex);
@@ -229,7 +244,7 @@ public class LoadEventsService {
         }
         loadEventsLogger.info("%%%%% %%%%% %%%%% LOAD EVENTS SERVICE INVOCATION STATISTICS %%%%% %%%%% %%%%%");
         loadEventsLogger.info("Total events: " + eventStats.getTotalEvents());
-        loadEventsLogger.info("Unique new events: " + eventStats.getNewEvents());
+        loadEventsLogger.info("Total new events: " + eventStats.getTotalNewEvents());
     }
     
     public void loadUsersAndParticipation(Event event) {
