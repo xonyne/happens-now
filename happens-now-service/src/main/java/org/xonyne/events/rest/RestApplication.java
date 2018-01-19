@@ -1,4 +1,4 @@
-package org.xonyne.events.service;
+package org.xonyne.events.rest;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -15,7 +15,7 @@ import org.xonyne.events.rest.EventsEndPoint;
  */
 public class RestApplication extends Application
 {
-	   HashSet<Object> singletons = new HashSet<Object>();
+	   HashSet<Object> singletons = new HashSet<>();
 	   
 	   public RestApplication()
 	   {
@@ -25,8 +25,8 @@ public class RestApplication extends Application
 	   @Override
 	   public Set<Class<?>> getClasses()
 	   {
-	      HashSet<Class<?>> set = new HashSet<Class<?>>();
-//	      set.add(JacksonConfig.class);
+	      HashSet<Class<?>> set = new HashSet<>();
+              //set.add(JacksonConfig.class);
 	      return set;
 	   }
 

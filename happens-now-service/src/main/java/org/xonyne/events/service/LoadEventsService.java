@@ -46,6 +46,7 @@ import java.time.ZoneOffset;
 import java.util.logging.Level;
 import org.xonyne.events.model.City;
 import org.xonyne.events.model.Rating;
+import org.xonyne.events.service.util.LoadEventsServiceStatistics;
 
 @Service
 @Scope(value = ConfigurableBeanFactory.SCOPE_SINGLETON)
@@ -100,7 +101,7 @@ public class LoadEventsService {
     private final double LAT_100_METRES = 0.00089d;
     private final double LNG_100_METRES = 0.001275d;
     private final Integer SQUARE_100M_STEPS_FROM_CENTER = 10;
-    
+
     private final String FB_BASE_URL = "https://www.facebook.com/";
 
     public LoadEventsService() {
@@ -114,7 +115,7 @@ public class LoadEventsService {
         endDate = LocalDateTime.of(LocalDate.now().plusDays(Long.valueOf(fetchTimePeriodInDays)), LocalTime.of(23, 59));
         objectMapper = new ObjectMapper();
         loadCities();
-        this.selectedCity="";
+        this.selectedCity = "";
     }
 
     private void loadCities() {
@@ -137,24 +138,26 @@ public class LoadEventsService {
 
     // --> load events every night 01:00 AM
     //@Scheduled(cron = "0 0 1 * * ?")
-    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
+    @Scheduled(fixedDelay = 3600000, initialDelay = 1000)
     public void loadEvents() {
         loadEventsLogger.debug("%%%%% %%%%% %%%%%  LOAD EVENTS METHOD CALLED %%%%% %%%%% %%%%%");
         JSONObject jsonData;
         FacebookEventResults facebookEvents;
 
         LoadEventsServiceStatistics eventStats = new LoadEventsServiceStatistics();
-        int totalSteps = (SQUARE_100M_STEPS_FROM_CENTER*2*SQUARE_100M_STEPS_FROM_CENTER*2) * this.cityList.size();
+        int totalSteps = (SQUARE_100M_STEPS_FROM_CENTER * 2 * SQUARE_100M_STEPS_FROM_CENTER * 2) * this.cityList.size();
         int currentStep = 0;
         long totalTimeAllCycles = 0;
         long startTimeOfCycle = 0;
-        
+        double currentLongitude;
+        double currentLatitude;
+
         for (City currentCity : this.cityList) {
             loadEventsLogger.info("***** ***** ***** START READ EVENTS FROM " + currentCity.getName() + " ***** ***** *****");
             for (int lng = -SQUARE_100M_STEPS_FROM_CENTER; lng < SQUARE_100M_STEPS_FROM_CENTER; lng++) {
-                double currentLongitude = Double.valueOf(currentCity.getLongitude()) + (lng * LNG_100_METRES);
+                currentLongitude = Double.valueOf(currentCity.getLongitude()) + (lng * LNG_100_METRES);
                 for (int lat = -SQUARE_100M_STEPS_FROM_CENTER; lat < SQUARE_100M_STEPS_FROM_CENTER; lat++) {
-                    double currentLatitude = Double.valueOf(currentCity.getLatitude()) + (lat * LAT_100_METRES);
+                    currentLatitude = Double.valueOf(currentCity.getLatitude()) + (lat * LAT_100_METRES);
                     try {
                         startTimeOfCycle = System.currentTimeMillis();
                         loadEventsLogger.debug("starting to load events");
@@ -187,24 +190,29 @@ public class LoadEventsService {
 
                         for (FacebookEvent facebookEvent : facebookEvents.events) {
                             try {
-                                loadEventsLogger.debug("storing information of event id:" + facebookEvent.id);
-                                Place place = findOrStorePlace(currentCity.getName(), facebookEvent);
+
+                                loadEventsLogger.debug("storing place of event " + facebookEvent);
+                                Place place = findOrStorePlace(facebookEvent.place);
                                 if (!place.getIsStale()) {
                                     eventStats.increaseNewPlaces(1);
                                 }
+
+                                loadEventsLogger.debug("storing event " + facebookEvent);
                                 Event event = findOrStoreEvent(facebookEvent, place);
                                 if (!event.getIsStale()) {
                                     eventStats.increaseNewEvents(1);
                                 }
 
-                                eventsDao.merge(event);
-                                loadEventsLogger.debug(" event " + event + " stored successfully");
+                                loadEventsLogger.debug("getting users and participation of event " + event);
+                                loadUsersAndParticipation(event);
+                                loadEventsLogger.debug(" event " + event + " merged successfully");
 
                             } catch (Exception e) {
                                 logger.error("error in storing information of event id:" + facebookEvent.id + "," + e.getMessage(), e);
                             }
 
                         }
+
                         totalTimeAllCycles += System.currentTimeMillis() - startTimeOfCycle;
                     } catch (Exception ex) {
                         logger.error("error in load events," + ex.getMessage(), ex);
@@ -223,130 +231,72 @@ public class LoadEventsService {
         loadEventsLogger.info("Total events: " + eventStats.getTotalEvents());
         loadEventsLogger.info("Unique new events: " + eventStats.getNewEvents());
     }
+    
+    public void loadUsersAndParticipation(Event event) {
+        loadEventsLogger.info("&&&&&&&&& &&&&&&&&& &&&&&&&&&  LOAD USERS AND PARTICIPATION METHOD CALLED &&&&&&&&& &&&&&&&&& &&&&&&&&& ");
+        LoadEventsServiceStatistics userStats = new LoadEventsServiceStatistics();
 
-    // --> load users and ratings every night 05:00 AM
-    //@Scheduled(cron = "0 0 5 * * ?")
-    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
-    public void loadUsersAndRatings() {
-        loadEventsLogger.info("&&&&&&&&& &&&&&&&&& &&&&&&&&&  LOAD USERS AND RATINGS METHOD CALLED &&&&&&&&& &&&&&&&&& &&&&&&&&& ");
-        LoadEventsServiceStatistics userAndRatingStats = new LoadEventsServiceStatistics();
-
-        List<Event> allEvents = eventsDao.findAll();
-        for (Event event : allEvents) {
-            /*
-            loadEventsLogger.info("Step: " + currentStep + "/" + totalSteps);
-                        LocalTime timeOfDay = LocalTime.ofSecondOfDay((((totalSteps - currentStep) * delayBetweenGraphAPICallsInMs) + ((totalSteps - currentStep) * (totalTimeAllCycles / currentStep))) / 1000);
-                        loadEventsLogger.info("Time left: " + timeOfDay.toString());
-                        loadEventsLogger.info("Location: https://www.google.com/maps/search/?api=1&query=" + currentLatitude + "," + currentLongitude);
-                        loadEventsLogger.info("Events retreived: " + facebookEvents.events.length);*/
-            
-            Set<User> storedInterestedUsers = findOrStoreInterestedUsers(event.getId());
-            Set<User> storedAttendendingUsers = findOrStoreAttendingUsers(event.getId());
-            event.setAttendingUsers(storedAttendendingUsers);
-            event.setInterestedUsers(storedInterestedUsers);
-            loadEventsLogger.debug(" add attending and interested users to event " + event);
-
-            for (User user : storedInterestedUsers) {
-                if (!user.getIsStale()) {
-                    userAndRatingStats.increaseNewUsers(1);
-                }
-                Rating rating = new Rating();
-                rating.setEventId(event.getId());
-                rating.setUserId(user.getId());
-                rating = eventsDao.findOrPersist(rating);
-                if (rating.getRating() == null || rating.getRating() < interestedRatingModifier) {
-                    rating.setRating(interestedRatingModifier);
-                    eventsDao.merge(rating);
-                }
-            }
-            loadEventsLogger.debug(" interested ratings for event " + event + " stored successfully");
-
-            for (User user : storedAttendendingUsers) {
-                if (!user.getIsStale()) {
-                    userAndRatingStats.increaseNewUsers(1);
-                }
-                Rating rating = new Rating();
-                rating.setEventId(event.getId());
-                rating.setUserId(user.getId());
-                rating = eventsDao.findOrPersist(rating);
-                if (rating.getRating() == null || rating.getRating() < attendingRatingModifier) {
-                    rating.setRating(attendingRatingModifier);
-                    eventsDao.merge(rating);
-                }
-            }
-            loadEventsLogger.debug(" attending ratings for event " + event + " stored successfully");
-            try {
-                Thread.sleep(delayBetweenGraphAPICallsInMs);
-            } catch (InterruptedException ex) {
-                java.util.logging.Logger.getLogger(LoadEventsService.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-        loadEventsLogger.info("&&&&&&&&& &&&&&&&&& &&&&&&&&&  LOAD USERS AND RATINGS INVOCATION STATISTICS &&&&&&&&& &&&&&&&&& &&&&&&&&& ");
-        loadEventsLogger.info("Unique new users: " + userAndRatingStats.getNewUsers());
-    }
-
-    private Set<User> findOrStoreAttendingUsers(Long eventId) {
+        loadEventsLogger.debug(" retreiving interested users for event: " + event);
+        Set<User> storedInterestedUsers = new HashSet<>();
         try {
-            String url;
-            loadEventsLogger.debug(" retreiving attending users for event:" + eventId);
-            url = getAttendingUsersUrl(eventId);
-            Set<User> attendingUsers = getUsers(this.objectMapper, url);
-            Set<User> storedAttendedUsers = new HashSet<>();
-            for (User user : attendingUsers) {
-                User storedUser = usersDao.findOrPersist(user);
-                storedAttendedUsers.add(storedUser);
-            }
-            return storedAttendedUsers;
-
-        } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(LoadEventsService.class
-                    .getName()).log(Level.SEVERE, null, ex);
-        }
-        return null;
-    }
-
-    private Set<User> findOrStoreInterestedUsers(Long eventId) {
-        try {
-            String url;
-            // load interested users
-            loadEventsLogger.debug(" retreiving interested users for event:" + eventId);
-            url = getInterestedUsersUrl(eventId);
-            Set<User> interestedUsers = getUsers(this.objectMapper, url);
-            Set<User> storedInterestedUsers = new HashSet<>();
+            String interestedUsersURL = getInterestedUsersUrl(event.getId());
+            Set<User> interestedUsers = getUsers(interestedUsersURL);
             for (User user : interestedUsers) {
                 User storedUser = usersDao.findOrPersist(user);
                 storedInterestedUsers.add(storedUser);
-            }
-            return storedInterestedUsers;
 
+                if (!storedUser.getIsStale()) {
+                    userStats.increaseNewUsers(1);
+                }
+            }
         } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(LoadEventsService.class
-                    .getName()).log(Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(LoadEventsService.class.getName()).log(Level.SEVERE, null, ex);
         }
-        return null;
+
+        loadEventsLogger.debug(" retreiving attending users for event: " + event);
+        Set<User> storedAttendingUsers = new HashSet<>();
+        try {
+            String attendingUsersURL = getAttendingUsersUrl(event.getId());
+            Set<User> attendingUsers = getUsers(attendingUsersURL);
+            for (User user : attendingUsers) {
+                User storedUser = usersDao.findOrPersist(user);
+                storedAttendingUsers.add(storedUser);
+
+                if (!storedUser.getIsStale()) {
+                    userStats.increaseNewUsers(1);
+                }
+            }
+        } catch (IOException ex) {
+            java.util.logging.Logger.getLogger(LoadEventsService.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        loadEventsLogger.debug(" adding attending and interested users for event " + event);
+        event.setInterestedUsers(storedInterestedUsers);
+        event.setAttendingUsers(storedAttendingUsers);
+        eventsDao.merge(event);
+
+        loadEventsLogger.info("&&&&&&&&& &&&&&&&&& &&&&&&&&&  LOAD USERS AND PARTICIPATION INVOCATION STATISTICS &&&&&&&&& &&&&&&&&& &&&&&&&&& ");
+        loadEventsLogger.info("Unique new users: " + userStats.getNewUsers());
     }
 
     private Event findOrStoreEvent(FacebookEvent facebookEvent, Place place) {
         // create event
         Event event = new Event(facebookEvent.id, facebookEvent.name, facebookEvent.description,
-                facebookEvent.startTime, facebookEvent.endTime, this.FB_BASE_URL + facebookEvent.id, null, null, null, place, null );
+                facebookEvent.startTime, facebookEvent.endTime, this.FB_BASE_URL + facebookEvent.id, null, null, null, place, null);
         loadEventsLogger.debug(" persist event");
         event = eventsDao.findOrPersist(event);
         return event;
     }
 
-    private Place findOrStorePlace(String currentCity, FacebookEvent facebookEvent) {
-        // create place
-        FacebookEventPlace facebookPlace = facebookEvent.place;
-        FacebookEventLocation facebookLocation = facebookPlace.location;
+    private Place findOrStorePlace(FacebookEventPlace facebookPlace) {
 
         // some events have no city set. Prevent NullPointerException.
         if (facebookPlace.location.city == null) {
-            facebookPlace.location.city = currentCity;
+            facebookPlace.location.city = this.selectedCity;
         }
         // some events have no zip set. Prevent NullPointerException.
         if (facebookPlace.location.zip == null) {
-            facebookPlace.location.zip = "0000" ;
+            facebookPlace.location.zip = "0000";
         }
         // some events have no country set. Prevent NullPointerException.
         if (facebookPlace.location.country == null) {
@@ -357,6 +307,7 @@ public class LoadEventsService {
             facebookPlace.location.street = this.defaultStreet;
         }
 
+        FacebookEventLocation facebookLocation = facebookPlace.location;
         Place place = new Place(facebookPlace.id, facebookPlace.name,
                 new Location(null, facebookLocation.city, facebookLocation.country,
                         facebookLocation.street, facebookLocation.zip, facebookLocation.latitude,
@@ -368,7 +319,7 @@ public class LoadEventsService {
     /**
      * Reads the list of users using the provided URL.
      */
-    private Set<User> getUsers(ObjectMapper objectMapper, String url)
+    private Set<User> getUsers(String url)
             throws IOException, JsonParseException, JsonMappingException {
 
         Set<User> result = new HashSet<>();
@@ -376,7 +327,7 @@ public class LoadEventsService {
             logger.debug("load users from url :" + url);
 
             JSONObject object = JsonReader.readJsonFromUrl(url);
-            EventUsersResult facbookUsers = objectMapper.readValue(object.toString(), EventUsersResult.class
+            EventUsersResult facbookUsers = this.objectMapper.readValue(object.toString(), EventUsersResult.class
             );
 
             for (FacebookUser facebookUser : facbookUsers.data) {
@@ -448,7 +399,7 @@ public class LoadEventsService {
         end.set(Calendar.HOUR_OF_DAY, 23);
         end.set(Calendar.MINUTE, 59);
         end.set(Calendar.SECOND, 59);
-        
+
         List<EventDto> result = findEvents(start.getTime(), end.getTime());
         return result;
     }
@@ -456,7 +407,8 @@ public class LoadEventsService {
     /**
      * Weekend start : Saturday in current week Weekend end : Sunday in next
      * week
-     * @return 
+     *
+     * @return
      */
     public List<EventDto> getWeekendEvents() {
         Calendar start = (Calendar) Calendar.getInstance().clone();
@@ -476,7 +428,7 @@ public class LoadEventsService {
         if (logger.isDebugEnabled()) {
             logger.debug(" start/end dates of next weekend:" + start.getTime() + "," + end.getTime());
         }
-        
+
         List<EventDto> result = findEvents(start.getTime(), end.getTime());
         return result;
     }
@@ -508,7 +460,7 @@ public class LoadEventsService {
         if (logger.isDebugEnabled()) {
             logger.debug(" get events between :" + start.getTime() + "," + end.getTime());
         }
-            
+
         List<EventDto> result = findEvents(start, end);
         return result;
     }
@@ -520,7 +472,7 @@ public class LoadEventsService {
         } else {
             events = eventsDao.findEventsInCity(start, end, this.selectedCity);
         }
-        
+
         List<EventDto> result = new ArrayList<>(events.size());
         events.forEach((event) -> {
             Set<Long> interestedUsers = new HashSet<>();
@@ -531,7 +483,7 @@ public class LoadEventsService {
             event.getAttendingUsers().forEach((user) -> {
                 attendingUsers.add(user.getId());
             });
-            result.add(new EventDto(event.getId(), event.getTitle(), event.getStartDateTime(), event.getEndDateTime(),interestedUsers, attendingUsers, event.getUrl()));
+            result.add(new EventDto(event.getId(), event.getTitle(), event.getStartDateTime(), event.getEndDateTime(), interestedUsers, attendingUsers, event.getUrl()));
         });
 
         logger.debug(" retreived result count:" + result.size());

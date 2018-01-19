@@ -5,11 +5,11 @@ Installation Procedure:
 - Install Postgresql DB 9.5.4
 
 - Run the DB script using the following command :
-/Library/PostgreSQL/9.5/bin/psql -w -U postgres --password -f /Users/kevin/git/happens-now/ReloadDB.sql -p 5432
+ /Library/PostgreSQL/9.5/bin/psql -w -U postgres --password -f ./ReloadDB.sql -p 5432
 
-- Downlod WildFly 10.1.0.Final from http://wildfly.org/downloads/
+- Download WildFly 10.1.0.Final from http://wildfly.org/downloads/
 
-- in wildfly-11.0.0.Final/standalone/configuration/stanalone.xml define the following :
+- in wildfly-10.1.0.Final/standalone/configuration/standalone.xml define the following :
  
  - Add these drivers:
 
@@ -45,7 +45,7 @@ Installation Procedure:
                     </statement>
                 </datasource>
 
-- If you want to allow remote access to your application go to : wildfly-11.0.0.Final/standalone/configuration/stanalone.xml 
+- If you want to allow remote access to your application go to : wildfly-10.1.0.Final/standalone/configuration/standalone.xml 
    and apply the following change: 
 
         <interface name="public">
@@ -56,17 +56,17 @@ Installation Procedure:
             <inet-address value="${jboss.bind.address:0.0.0.0}"/>
         </interface>
 
-- Extract the zip file postgresql.zip to the folder wildfly-11.0.0.Final/modules/system/layers/base/org
-  after extracting the zip file you should have this path wildfly-11.0.0.Final/modules/system/layers/base/org/postgresql/main
+- Extract the zip file postgresql.zip to the folder wildfly-10.1.0.Final/modules/system/layers/base/org
+  after extracting the zip file you should have this path wildfly-10.1.0.Final/modules/system/layers/base/org/postgresql/main
   
 - Adjust the target logging folder in the file: happens-now/happens-now-backend/src/main/resources/log4j2.xml
 
-- Review the configuration in the file happens-now/happens-now-backend/src/main/resources/configuration.properties               
+- Review the configuration in the file happens-now/happens-now-backend/src/main/resources/configuration.properties           
 
 - If you want to use SSL with the login page, remove the comments around the block 'SSL Configuration' in 
   the file happens-now/happens-now-front/WebContent/WEB-INF/web.xml. After obtaining your SSL Certificate follow the 
   instructions in this website http://ni3jboss.blogspot.qa/2016/06/how-to-configure-ssl-in-wildfly-10.html. 
 
 - Start tobilg webservice before starting the program
-cd fb-event-test/
-cd facebook-events-by-location && npm i && npm start
+  cd fb-event-test/
+  cd facebook-events-by-location && npm i && npm start
