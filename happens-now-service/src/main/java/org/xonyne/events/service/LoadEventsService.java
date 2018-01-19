@@ -80,10 +80,12 @@ public class LoadEventsService {
     private Integer fetchTimePeriodInDays;
     @Value("${loadEventsService.delayBetweenGraphAPICallsInMs}")
     private Integer delayBetweenGraphAPICallsInMs;
-    @Value("${loadEventsService.interestedRatingModifier}")
-    private Integer interestedRatingModifier;
-    @Value("${loadEventsService.attendingRatingModifier}")
-    private Integer attendingRatingModifier;
+    @Value("${loadEventsService.square100mStepsFromCenter}")
+    private Integer square100mStepsFromCenter;
+    @Value("${loadEventsService.lat100m}")
+    private Double lat_100_METRES;
+    @Value("${loadEventsService.lng100m}")
+    private Double lng_100_METRES;
 
     LocalDateTime startDate;
     LocalDateTime endDate;
@@ -98,10 +100,6 @@ public class LoadEventsService {
 
     @Autowired
     private UsersDao usersDao;
-
-    private final double LAT_100_METRES = 0.00089d;
-    private final double LNG_100_METRES = 0.001275d;
-    private final Integer SQUARE_100M_STEPS_FROM_CENTER = 10;
 
     private final String FB_BASE_URL = "https://www.facebook.com/";
 
@@ -139,14 +137,14 @@ public class LoadEventsService {
 
     // --> load events every night 01:00 AM
     //@Scheduled(cron = "0 0 1 * * ?")
-    @Scheduled(fixedDelay = 3600000, initialDelay = 1000)
+    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
     public void loadEvents() {
         loadEventsLogger.debug("%%%%% %%%%% %%%%%  LOAD EVENTS METHOD CALLED %%%%% %%%%% %%%%%");
         JSONObject jsonData;
         FacebookEventResults facebookEvents;
 
         LoadEventsServiceStatistics eventStats = new LoadEventsServiceStatistics();
-        int totalSteps = (SQUARE_100M_STEPS_FROM_CENTER * 2 * SQUARE_100M_STEPS_FROM_CENTER * 2) * this.cityList.size();
+        int totalSteps = (square100mStepsFromCenter * 2 * square100mStepsFromCenter * 2) * this.cityList.size();
         int currentStep = 0;
         long totalTimeAllCycles = 0;
         long startTimeOfCycle = 0;
@@ -157,10 +155,10 @@ public class LoadEventsService {
 
         for (City currentCity : this.cityList) {
             loadEventsLogger.info("***** ***** ***** START READ EVENTS FROM " + currentCity.getName() + " ***** ***** *****");
-            for (int lng = -SQUARE_100M_STEPS_FROM_CENTER; lng < SQUARE_100M_STEPS_FROM_CENTER; lng++) {
-                currentLongitude = Double.valueOf(currentCity.getLongitude()) + (lng * LNG_100_METRES);
-                for (int lat = -SQUARE_100M_STEPS_FROM_CENTER; lat < SQUARE_100M_STEPS_FROM_CENTER; lat++) {
-                    currentLatitude = Double.valueOf(currentCity.getLatitude()) + (lat * LAT_100_METRES);
+            for (int lng = -square100mStepsFromCenter; lng < square100mStepsFromCenter; lng++) {
+                currentLongitude = Double.valueOf(currentCity.getLongitude()) + (lng * lng_100_METRES);
+                for (int lat = -square100mStepsFromCenter; lat < square100mStepsFromCenter; lat++) {
+                    currentLatitude = Double.valueOf(currentCity.getLatitude()) + (lat * lat_100_METRES);
                     try {
                         startTimeOfCycle = System.currentTimeMillis();
                         loadEventsLogger.debug("starting to load events");
@@ -215,18 +213,13 @@ public class LoadEventsService {
                             }
 
                         }
-                        loadEventsLogger.info("Duplicate events in this call: " + eventStats.getDuplicateEvents());
-                        loadEventsLogger.info("New events in this call: " + eventStats.getNewEvents());
+                        loadEventsLogger.info("Duplicate events: " + eventStats.getDuplicateEvents());
+                        loadEventsLogger.info("New events: " + eventStats.getNewEvents());
                         eventStats.resetDuplicateEvents();
                         eventStats.resetNewEvents();
-                        
-                        if (lastCallOver) {
-                            eventsOfLastCall.clear();         
-                            lastCallOver = false;
-                        } else {
-                            lastCallOver = true;
-                            eventsOfLastCall.addAll(Arrays.asList(facebookEvents.events));
-                        }
+
+                        eventsOfLastCall.clear();     
+                        eventsOfLastCall.addAll(Arrays.asList(facebookEvents.events));
                         
                         totalTimeAllCycles += System.currentTimeMillis() - startTimeOfCycle;
                     } catch (Exception ex) {
@@ -291,7 +284,7 @@ public class LoadEventsService {
         eventsDao.merge(event);
 
         loadEventsLogger.info("&&&&&&&&& &&&&&&&&& &&&&&&&&&  LOAD USERS AND PARTICIPATION INVOCATION STATISTICS &&&&&&&&& &&&&&&&&& &&&&&&&&& ");
-        loadEventsLogger.info("Unique new users: " + userStats.getNewUsers());
+        loadEventsLogger.info("Total new users: " + userStats.getNewUsers());
     }
 
     private Event findOrStoreEvent(FacebookEvent facebookEvent, Place place) {
