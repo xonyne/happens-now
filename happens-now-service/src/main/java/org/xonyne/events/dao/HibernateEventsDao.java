@@ -26,10 +26,10 @@ public class HibernateEventsDao extends AbstractDao implements EventsDao {
 
     @Override
     @Transactional
-    public Event findEvent(Event event) {
-        logger.debug("find event with id:" + event.getId());
+    public Event find(Long eventId) {
+        logger.debug("find event with id:" + eventId);
         try {
-            return entityManager.find(Event.class, event.getId());
+            return entityManager.find(Event.class, eventId);
         } catch (RuntimeException re) {
             logger.error("error in find Event, " + re.getMessage(), re);
             throw re;

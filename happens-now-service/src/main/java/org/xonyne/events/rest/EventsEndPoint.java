@@ -5,13 +5,10 @@ import java.util.Date;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
-import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 
 import org.slf4j.Logger;
@@ -113,12 +110,17 @@ public class EventsEndPoint {
 		return AppContext.ctx.getBean(LoadEventsService.class).findUser(userName, password);
 	}
         
-        //TODO
-        /*@GET
+        @GET
 	@Path("/setAttending")
-	@Produces(MediaType.APPLICATION_JSON)
-	public UserDto setAttending(@QueryParam("username") String userName, @QueryParam("password") String password) {
-		logger.debug("authenticate for user :" + userName);
-		return AppContext.ctx.getBean(LoadEventsService.class).findUser(userName, password);
-	}*/
+	public void setAttending(@QueryParam("userId") Long userId, @QueryParam("eventId") Long eventId, @QueryParam("attending") Boolean attending) {
+		logger.debug("set attending for event " + eventId + "(user :" + userId + ", value: " + attending + ")");
+		AppContext.ctx.getBean(LoadEventsService.class).setAttending(userId, eventId, attending);
+	}
+        
+        @GET
+	@Path("/setInterested")
+	public void setInterested(@QueryParam("userId") Long userId, @QueryParam("eventId") Long eventId, @QueryParam("interested") Boolean interested) {
+		logger.debug("set attending for event " + eventId + "(user :" + userId + ", value: " + interested + ")");
+		AppContext.ctx.getBean(LoadEventsService.class).setInterested(userId, eventId, interested);
+	}
 }

@@ -153,8 +153,14 @@ public class EventsService {
         restTemplate.getForObject(backendServiceUrl + "/events/setAttending?userId={userId}&eventId={eventId}&attending={attending}", List.class, parameters);
     }
 
-    public void setUserIsInterested(Long id, boolean b) {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    public void setUserIsInterested(Long eventId, boolean isInterested) {
+        UserDto loggedInUser = getCurrentUser();
+        RestTemplate restTemplate = new RestTemplate();
+        Map<String, String> parameters = new HashMap<>();
+        parameters.put("userId", String.valueOf(loggedInUser.getId()));
+        parameters.put("eventId", String.valueOf(eventId));
+        parameters.put("interested", String.valueOf(isInterested));
+        restTemplate.getForObject(backendServiceUrl + "/events/setInterested?userId={userId}&eventId={eventId}&interested={interested}", List.class, parameters);
     }
 }
 

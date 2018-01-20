@@ -40,8 +40,9 @@ public class FindEventsView {
     public void toggleUserIsAttending(Long eventId) {
         for (EventDto e : this.events) {
             if (Objects.equals(e.getId(), eventId)) {
-                e.setUserIsAttending(!e.getUserIsAttending());
-                AppContext.getEventsService().setUserIsAttending(e.getId(), !e.getUserIsAttending());
+                boolean userIsAttending = !e.getUserIsAttending();
+                e.setUserIsAttending(userIsAttending);
+                AppContext.getEventsService().setUserIsAttending(e.getId(), userIsAttending);
             }
         }
     }
@@ -49,10 +50,10 @@ public class FindEventsView {
     public void toggleUserIsInterested(Long eventId) {
         for (EventDto e : this.events) {
             if (Objects.equals(e.getId(), eventId)) {
-                e.setUserIsInterested(!e.getUserIsInterested());
-                AppContext.getEventsService().setUserIsInterested(e.getId(), !e.getUserIsInterested());
+                boolean userIsInterested = !e.getUserIsInterested();
+                e.setUserIsInterested(userIsInterested);
+                AppContext.getEventsService().setUserIsInterested(e.getId(), userIsInterested);
             }
-
         }
     }
 

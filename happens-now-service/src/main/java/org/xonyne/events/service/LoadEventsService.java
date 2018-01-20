@@ -187,8 +187,7 @@ public class LoadEventsService {
                         loadEventsLogger.info("Time left: " + timeOfDay.toString());
                         loadEventsLogger.info("Location: https://www.google.com/maps/search/?api=1&query=" + currentLatitude + "," + currentLongitude);
                         loadEventsLogger.info("Events retreived: " + facebookEvents.events.length);
-                        
-                        
+
                         for (FacebookEvent facebookEvent : facebookEvents.events) {
                             try {
 
@@ -205,7 +204,9 @@ public class LoadEventsService {
                                     eventStats.increaseTotalNewEvents(1);
                                 }
 
-                                if (eventsOfLastCall.contains(facebookEvent)) eventStats.increaseDuplicateEvents(1);
+                                if (eventsOfLastCall.contains(facebookEvent)) {
+                                    eventStats.increaseDuplicateEvents(1);
+                                }
 
                             } catch (Exception e) {
                                 logger.error("error in storing information of event id:" + facebookEvent.id + "," + e.getMessage(), e);
@@ -217,9 +218,9 @@ public class LoadEventsService {
                         eventStats.resetDuplicateEvents();
                         eventStats.resetNewEvents();
 
-                        eventsOfLastCall.clear();     
+                        eventsOfLastCall.clear();
                         eventsOfLastCall.addAll(Arrays.asList(facebookEvents.events));
-                        
+
                         totalTimeAllCycles += System.currentTimeMillis() - startTimeOfCycle;
                     } catch (Exception ex) {
                         logger.error("error in load events," + ex.getMessage(), ex);
@@ -238,7 +239,7 @@ public class LoadEventsService {
         loadEventsLogger.info("Total events: " + eventStats.getTotalEvents());
         loadEventsLogger.info("Total new events: " + eventStats.getTotalNewEvents());
     }
-    
+
     public void loadUsersAndParticipation(Event event) {
         loadEventsLogger.info("&&&&&&&&& &&&&&&&&& &&&&&&&&&  LOAD USERS AND PARTICIPATION METHOD CALLED &&&&&&&&& &&&&&&&&& &&&&&&&&& ");
         LoadEventsServiceStatistics userStats = new LoadEventsServiceStatistics();
@@ -521,5 +522,27 @@ public class LoadEventsService {
 
     public void setSelectedCity(String selectedCity) {
         this.selectedCity = selectedCity;
+    }
+
+    public void setAttending(Long userId, Long eventId, Boolean attending) {
+        Event event = eventsDao.find(eventId);
+        User user = usersDao.find(userId);
+        if (attending) {
+            event.getAttendingUsers().add(user);
+        } else {
+            event.getAttendingUsers().remove(user);
+        }
+        eventsDao.merge(event);
+    }
+
+    public void setInterested(Long userId, Long eventId, Boolean attending) {
+        Event event = eventsDao.find(eventId);
+        User user = usersDao.find(userId);
+        if (attending) {
+            event.getInterestedUsers().add(user);
+        } else {
+            event.getInterestedUsers().remove(user);
+        }
+        eventsDao.merge(event);
     }
 }

@@ -17,46 +17,57 @@ import org.xonyne.events.model.User;
 @Repository
 public class HibernateUsersDao extends AbstractDao implements UsersDao {
 
-	private Logger logger = org.slf4j.LoggerFactory.getLogger(HibernateUsersDao.class);
-	
-	@PersistenceContext
-	private EntityManager entityManager;
+    private Logger logger = org.slf4j.LoggerFactory.getLogger(HibernateUsersDao.class);
 
-	@Override
-	@Transactional
-	public User findOrPersist(User user) {
-		User storedUser = entityManager.find(User.class, user.getId());
-		if (storedUser == null){
-			persistObject(user);
-			storedUser = entityManager.find(User.class, user.getId());
-		} else {
-                    storedUser.setIsStale(true);
-                }
-		
-		return storedUser;
-	}
-	
-	@Transactional
-	@Override
-	public User find(String userName, String password){
-		SessionFactory sessionFactory = getSession();
-		Session session = null; 
-		User user = null;
-		
-		try{
-			session = sessionFactory.openSession();
-			Query query = session.createQuery(
-					"from User u where u.userName=:userName AND password=:password ");
-			query.setParameter("userName", userName).setParameter("password", password);
-			user = (User) query.uniqueResult();
-		}finally{
-			if (session != null){
-				session.close();
-			}
-		}
-		
-		return user;
-	}
+    @PersistenceContext
+    private EntityManager entityManager;
 
+    @Override
+    @Transactional
+    public User find(Long userId) {
+        logger.debug("find user with id:" + userId);
+        try {
+            return entityManager.find(User.class, userId);
+        } catch (RuntimeException re) {
+            logger.error("error in find User, " + re.getMessage(), re);
+            throw re;
+        }
+    }
+
+    @Override
+    @Transactional
+    public User findOrPersist(User user) {
+        User storedUser = entityManager.find(User.class, user.getId());
+        if (storedUser == null) {
+            persistObject(user);
+            storedUser = entityManager.find(User.class, user.getId());
+        } else {
+            storedUser.setIsStale(true);
+        }
+
+        return storedUser;
+    }
+
+    @Transactional
+    @Override
+    public User find(String userName, String password) {
+        SessionFactory sessionFactory = getSession();
+        Session session = null;
+        User user = null;
+
+        try {
+            session = sessionFactory.openSession();
+            Query query = session.createQuery(
+                    "from User u where u.userName=:userName AND password=:password ");
+            query.setParameter("userName", userName).setParameter("password", password);
+            user = (User) query.uniqueResult();
+        } finally {
+            if (session != null) {
+                session.close();
+            }
+        }
+
+        return user;
+    }
 
 }

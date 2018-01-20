@@ -13,7 +13,7 @@ public interface EventsDao {
         
         Rating findOrPersist(Rating rating);
 
-	Event findEvent(Event event);
+	Event find(Long eventId);
 
 	Event findOrPersist(Event event);
 
