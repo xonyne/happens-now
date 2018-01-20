@@ -49,7 +49,8 @@ public class Event {
 
     @ManyToMany(
             targetEntity = User.class,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            fetch = FetchType.EAGER
     )
     @JoinTable(
             name = "interested",
@@ -60,7 +61,8 @@ public class Event {
 
     @ManyToMany(
             targetEntity = User.class,
-            cascade = {CascadeType.PERSIST, CascadeType.MERGE}
+            cascade = {CascadeType.PERSIST, CascadeType.MERGE},
+            fetch = FetchType.EAGER
     )
     @JoinTable(
             name = "attending",

@@ -111,8 +111,6 @@ public class HibernateEventsDao extends AbstractDao implements EventsDao {
         try {
             session = sessionFactory.openSession();
             Query query = session.createQuery("FROM Event e " + 
-                    "LEFT JOIN FETCH e.interestedUsers " + 
-                    "LEFT JOIN FETCH e.attendingUsers " + 
                     "WHERE (e.startDateTime BETWEEN :start AND :end) "+
                     "AND e.place IN (FROM Place p WHERE p.location IN (FROM Location l WHERE l.city = :city)) " + 
                     "ORDER BY e.startDateTime ");
@@ -136,9 +134,7 @@ public class HibernateEventsDao extends AbstractDao implements EventsDao {
 
         try {
             session = sessionFactory.openSession();
-            Query query = session.createQuery("FROM Event e " + 
-                    "LEFT JOIN FETCH e.interestedUsers " + 
-                    "LEFT JOIN FETCH e.attendingUsers " + 
+            Query query = session.createQuery("FROM Event e " +
                     "WHERE (e.startDateTime BETWEEN :start AND :end) "+
                     "ORDER BY e.startDateTime ");
             query.setParameter("start", from).setParameter("end", to);
