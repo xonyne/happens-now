@@ -44,6 +44,7 @@ import java.time.LocalTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.logging.Level;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.xonyne.events.model.City;
 import org.xonyne.events.model.Rating;
 import org.xonyne.events.service.util.LoadEventsServiceStatistics;
@@ -136,7 +137,7 @@ public class LoadEventsService {
 
     // --> load events every night 01:00 AM
     //@Scheduled(cron = "0 0 1 * * ?")
-    //@Scheduled(fixedDelay = 3600000, initialDelay = 1000)
+    @Scheduled(fixedDelay = 3600000, initialDelay = 1000)
     public void loadEvents() {
         loadEventsLogger.debug("%%%%% %%%%% %%%%%  LOAD EVENTS METHOD CALLED %%%%% %%%%% %%%%%");
         JSONObject jsonData;
@@ -151,7 +152,8 @@ public class LoadEventsService {
         double currentLatitude;
         Set<FacebookEvent> eventsOfLastCall = new HashSet<>();
         boolean lastCallOver = false;
-
+        LocalTime currentDay;
+        
         for (City currentCity : this.cityList) {
             loadEventsLogger.info("***** ***** ***** START READ EVENTS FROM " + currentCity.getName() + " ***** ***** *****");
             for (int lng = -square100mStepsFromCenter; lng < square100mStepsFromCenter; lng++) {
@@ -182,6 +184,7 @@ public class LoadEventsService {
                             loadEventsLogger.debug("facebook events parsed");
                         }
                         currentStep++;
+                        loadEventsLogger.info("---");
                         loadEventsLogger.info("Step: " + currentStep + "/" + totalSteps);
                         LocalTime timeOfDay = LocalTime.ofSecondOfDay((((totalSteps - currentStep) * delayBetweenGraphAPICallsInMs) + ((totalSteps - currentStep) * (totalTimeAllCycles / currentStep))) / 1000);
                         loadEventsLogger.info("Time left: " + timeOfDay.toString());
