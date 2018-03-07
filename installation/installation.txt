@@ -23,7 +23,7 @@ Installation Procedure:
   - Create the Datasource HappensNowDS as the following :
 
                 <datasource jta="false" jndi-name="java:/HappensNowDS" pool-name="HappensNowDS" enabled="true" use-java-context="true" use-ccm="false">
-                    <connection-url>jdbc:postgresql://localhost:5432/happens-now</connection-url>
+                    <connection-url>jdbc:postgresql://localhost:5432/happens_now</connection-url>
                     <driver-class>org.postgresql.Driver</driver-class>
                     <driver>postgresql</driver>
                     <pool>
@@ -63,10 +63,12 @@ Installation Procedure:
 
 - Review the configuration in the file happens-now/happens-now-backend/src/main/resources/configuration.properties           
 
-- If you want to use SSL with the login page, remove the comments around the block 'SSL Configuration' in 
+- OPTIONAL: If you want to use SSL with the login page, remove the comments around the block 'SSL Configuration' in 
   the file happens-now/happens-now-front/WebContent/WEB-INF/web.xml. After obtaining your SSL Certificate follow the 
   instructions in this website http://ni3jboss.blogspot.qa/2016/06/how-to-configure-ssl-in-wildfly-10.html. 
 
 - Start tobilg webservice before starting the program
   cd fb-event-test/
   cd facebook-events-by-location && npm i && npm start
+
+- Start happens-now-service (Loading of events) or happens-now-front (GUI)
